@@ -879,6 +879,7 @@ register(
     allow_null=True,
     category=_('System'),
     category_slug='system',
+    hidden=True,
 )
 
 register(
@@ -888,6 +889,7 @@ register(
     allow_null=True,
     category=_('System'),
     category_slug='system',
+    hidden=True,
 )
 
 register(
