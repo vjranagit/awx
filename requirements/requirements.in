@@ -64,7 +64,7 @@ requests
 slack-sdk
 tacacs_plus==1.0  # UPGRADE BLOCKER: auth does not work with later versions
 twilio
-twisted[tls]>=23.10.0  # CVE-2023-46137
+twisted[tls]>=24.7.0  # CVE-2024-41810
 urllib3>=1.26.19 # CVE-2024-37891
 uWSGI
 uwsgitop
