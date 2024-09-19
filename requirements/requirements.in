@@ -1,5 +1,6 @@
 aiohttp>=3.9.4 # CVE-2024-30251
 ansiconv==1.0.0  # UPGRADE BLOCKER: from 2013, consider replacing instead of upgrading
+ansible-runner==2.4.0
 asciichartpy
 asn1
 azure-identity
@@ -55,7 +56,7 @@ python-tss-sdk>=1.2.1
 python-ldap
 pyyaml>=6.0.1
 pyzstd  # otel collector log file compression library
-receptorctl
+receptorctl==1.4.8
 social-auth-core == 4.5.4 # hard pinned due to resolver picking CVE version when uncapped
 social-auth-app-django==5.4.2  # see UPGRADE BLOCKERs
 sqlparse>=0.4.4   # Required by django https://github.com/ansible/awx/security/dependabot/96
