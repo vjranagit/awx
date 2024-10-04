@@ -125,7 +125,7 @@ deprecated==1.2.14
     #   opentelemetry-exporter-otlp-proto-http
 distro==1.9.0
     # via -r /awx_devel/requirements/requirements.in
-django==4.2.15
+django==4.2.16
     # via
     #   -r /awx_devel/requirements/requirements.in
     #   channels
@@ -508,7 +508,7 @@ social-auth-core==4.5.4
     # via
     #   -r /awx_devel/requirements/requirements.in
     #   social-auth-app-django
-sqlparse==0.4.4
+sqlparse==0.5.0
     # via
     #   -r /awx_devel/requirements/requirements.in
     #   django

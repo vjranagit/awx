@@ -13,7 +13,7 @@ cryptography>=41.0.7  # CVE-2023-49083
 Cython<3 # due to https://github.com/yaml/pyyaml/pull/702
 daphne
 distro
-django==4.2.15  # CVE-2024-41991
+django==4.2.16  # CVE-2024-45230
 django-auth-ldap
 django-cors-headers
 django-crum
@@ -59,7 +59,7 @@ pyzstd  # otel collector log file compression library
 receptorctl==1.4.8
 social-auth-core == 4.5.4 # hard pinned due to resolver picking CVE version when uncapped
 social-auth-app-django==5.4.2  # see UPGRADE BLOCKERs
-sqlparse>=0.4.4   # Required by django https://github.com/ansible/awx/security/dependabot/96
+sqlparse==0.5.0   # CVE-2024-4340
 redis[hiredis]
 requests
 slack-sdk
