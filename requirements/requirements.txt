@@ -438,7 +438,7 @@ pyyaml==6.0.1
     #   receptorctl
 pyzstd==0.15.10
     # via -r /awx_devel/requirements/requirements.in
-receptorctl==1.4.8
+receptorctl==1.4.9
     # via -r /awx_devel/requirements/requirements.in
 redis[hiredis]==5.0.1
     # via
