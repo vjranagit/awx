@@ -534,7 +534,11 @@ SOCIAL_AUTH_PIPELINE = _SOCIAL_AUTH_PIPELINE_BASE + (
     'awx.sso.social_pipeline.update_user_teams',
     'ansible_base.resource_registry.utils.service_backed_sso_pipeline.redirect_to_resource_server',
 )
-SOCIAL_AUTH_SAML_PIPELINE = _SOCIAL_AUTH_PIPELINE_BASE + ('awx.sso.saml_pipeline.populate_user', 'awx.sso.saml_pipeline.update_user_flags')
+SOCIAL_AUTH_SAML_PIPELINE = _SOCIAL_AUTH_PIPELINE_BASE + (
+    'awx.sso.saml_pipeline.populate_user',
+    'awx.sso.saml_pipeline.update_user_flags',
+    'ansible_base.resource_registry.utils.service_backed_sso_pipeline.redirect_to_resource_server',
+)
 SAML_AUTO_CREATE_OBJECTS = True
 
 SOCIAL_AUTH_LOGIN_URL = '/'
