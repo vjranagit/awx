@@ -1,4 +1,4 @@
-aiohttp>=3.9.4 # CVE-2024-30251
+aiohttp>=3.11.6 # CVE-2024-52304
 ansiconv==1.0.0  # UPGRADE BLOCKER: from 2013, consider replacing instead of upgrading
 ansible-runner==2.4.0
 asciichartpy
