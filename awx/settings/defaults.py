@@ -312,6 +312,7 @@ TEMPLATES = [
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request',
                 'awx.ui.context_processors.csp',
                 'awx.ui.context_processors.version',
             ],
@@ -357,6 +358,7 @@ INSTALLED_APPS = [
     'ansible_base.jwt_consumer',
     'ansible_base.resource_registry',
     'ansible_base.rbac',
+    'flags',
 ]
 
 
@@ -1052,3 +1054,6 @@ ANSIBLE_BASE_ALLOW_SINGLETON_ROLES_API = False  # Do not allow creating user-def
 
 # system username for django-ansible-base
 SYSTEM_USERNAME = None
+
+# feature flags
+FLAGS = {}
