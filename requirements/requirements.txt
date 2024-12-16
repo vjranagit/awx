@@ -198,7 +198,7 @@ googleapis-common-protos==1.63.0
     # via
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-exporter-otlp-proto-http
-grpcio==1.62.2
+grpcio==1.68.1
     # via
     #   -r /awx_devel/requirements/requirements.in
     #   opentelemetry-exporter-otlp-proto-grpc
