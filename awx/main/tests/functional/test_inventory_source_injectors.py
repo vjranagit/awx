@@ -196,9 +196,6 @@ def create_reference_data(source_dir, env, content):
 @pytest.mark.django_db
 @pytest.mark.parametrize('this_kind', discover_available_cloud_provider_plugin_names())
 def test_inventory_update_injected_content(product_name, this_kind, inventory, fake_credential_factory, mock_me):
-    if this_kind.endswith('_supported'):
-        this_kind = this_kind[:-10]
-
     ExecutionEnvironment.objects.create(name='Control Plane EE', managed=True)
     ExecutionEnvironment.objects.create(name='Default Job EE', managed=False)
 

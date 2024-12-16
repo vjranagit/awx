@@ -18,6 +18,7 @@ import contextlib
 import tempfile
 import functools
 from importlib.metadata import version as _get_version
+from importlib.metadata import entry_points, EntryPoint
 
 # Django
 from django.core.exceptions import ObjectDoesNotExist, FieldDoesNotExist
@@ -1215,3 +1216,7 @@ def cleanup_new_process(func):
 
 def unified_job_class_to_event_table_name(job_class):
     return f'main_{job_class().event_class.__name__.lower()}'
+
+
+def load_all_entry_points_for(entry_point_subsections: list[str], /) -> dict[str, EntryPoint]:
+    return {ep.name: ep for entry_point_category in entry_point_subsections for ep in entry_points(group=f'awx_plugins.{entry_point_category}')}
