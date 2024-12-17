@@ -221,7 +221,7 @@ class HostMetricSummaryMonthlyTask:
             self.records_to_update.append(summary)
         return summary
 
-    def _find_summary(self, month):
+    def _find_summary(self, month: datetime.date):
         """
         Existing summaries are ordered by month ASC.
         This method is called with month in ascending order too => only 1 traversing is enough
@@ -229,6 +229,8 @@ class HostMetricSummaryMonthlyTask:
         summary = None
         while not summary and self.existing_summaries_idx < self.existing_summaries_cnt:
             tmp = self.existing_summaries[self.existing_summaries_idx]
+            if isinstance(tmp, datetime.datetime):
+                tmp = tmp.date()
             if tmp.date < month:
                 self.existing_summaries_idx += 1
             elif tmp.date == month:
