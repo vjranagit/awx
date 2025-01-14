@@ -106,7 +106,7 @@ extends_documentation_fragment: awx.awx.auth
 EXAMPLES = '''
 - name: Export all assets
   export:
-    all: True
+    all: true
 
 - name: Export all inventories
   export:
