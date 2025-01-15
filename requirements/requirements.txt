@@ -147,8 +147,6 @@ django-guid==3.5.0
     # via -r /awx_devel/requirements/requirements.in
 django-oauth-toolkit==1.7.1
     # via -r /awx_devel/requirements/requirements.in
-django-pglocks==1.0.4
-    # via -r /awx_devel/requirements/requirements.in
 django-polymorphic==3.1.0
     # via -r /awx_devel/requirements/requirements.in
 django-solo==2.4.0
@@ -456,7 +454,6 @@ setuptools-scm[toml]==8.1.0
 six==1.17.0
     # via
     #   azure-core
-    #   django-pglocks
     #   kubernetes
     #   msrestazure
     #   openshift
