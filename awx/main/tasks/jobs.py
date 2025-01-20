@@ -1279,6 +1279,7 @@ class RunProjectUpdate(BaseTask):
                 'local_path': os.path.basename(project_update.project.local_path),
                 'project_path': project_update.get_project_path(check_if_exists=False),  # deprecated
                 'insights_url': settings.INSIGHTS_URL_BASE,
+                'oidc_endpoint': settings.INSIGHTS_OIDC_ENDPOINT,
                 'awx_license_type': get_license().get('license_type', 'UNLICENSED'),
                 'awx_version': get_awx_version(),
                 'scm_url': scm_url,
@@ -1444,6 +1445,11 @@ class RunProjectUpdate(BaseTask):
             ]
         )
         return params
+
+    def build_credentials_list(self, project_update):
+        if project_update.scm_type == 'insights' and project_update.credential:
+            return [project_update.credential]
+        return []
 
 
 @task(queue=get_task_queuename)
