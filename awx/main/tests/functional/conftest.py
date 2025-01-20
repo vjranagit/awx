@@ -114,20 +114,6 @@ def team_member(user, team):
     return ret
 
 
-@pytest.fixture(scope="session", autouse=True)
-def project_playbooks():
-    """
-    Return playbook_files as playbooks for manual projects when testing.
-    """
-
-    class PlaybooksMock(mock.PropertyMock):
-        def __get__(self, obj, obj_type):
-            return obj.playbook_files
-
-    mocked = mock.patch.object(Project, 'playbooks', new_callable=PlaybooksMock)
-    mocked.start()
-
-
 @pytest.fixture
 def run_computed_fields_right_away(request):
     def run_me(inventory_id):
