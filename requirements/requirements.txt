@@ -127,7 +127,7 @@ deprecated==1.2.14
     #   opentelemetry-exporter-otlp-proto-http
 distro==1.9.0
     # via -r /awx_devel/requirements/requirements.in
-django==4.2.17
+django==4.2.18
     # via
     #   -r /awx_devel/requirements/requirements.in
     #   channels
@@ -144,7 +144,7 @@ django==4.2.17
     #   djangorestframework
     #   social-auth-app-django
     # via -r /awx_devel/requirements/requirements_git.txt
-django-auth-ldap==4.6.0
+django-auth-ldap==5.1.0
     # via -r /awx_devel/requirements/requirements.in
 django-cors-headers==4.3.1
     # via -r /awx_devel/requirements/requirements.in
