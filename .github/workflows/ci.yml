@@ -60,7 +60,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - uses: ./.github/actions/run_awx_devel
         id: awx
@@ -201,7 +201,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - uses: ./.github/actions/run_awx_devel
         id: awx
@@ -253,7 +253,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Upgrade ansible-core
         run: python3 -m pip install --upgrade ansible-core
