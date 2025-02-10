@@ -1214,3 +1214,5 @@ SYSTEM_USERNAME = None
 
 # feature flags
 FLAGS = {}
+
+FLAG_SOURCES = ('flags.sources.SettingsFlagsSource',)
