@@ -1213,7 +1213,23 @@ ANSIBLE_BASE_ALLOW_SINGLETON_ROLES_API = False  # Do not allow creating user-def
 # system username for django-ansible-base
 SYSTEM_USERNAME = None
 
-# feature flags
-FLAGS = {}
+# setting for Policy as Code feature
+FEATURE_POLICY_AS_CODE_ENABLED = False
 
+OPA_POLICY_EVALUATION_DEFAULT_RESULT = {'allowed': True}  # Default policy enforcement decision if policy evaluation fail for any reason.
+OPA_HOST = ''  # Host to connect to OPA service, defaults to ''. When this value is set to '', policy enforcement will be disabled.
+OPA_PORT = 8181  # Port to connect to OPA service, defaults to 8181.
+OPA_SSL = False  # Use SSL to connect to OPA service, defaults to False.
+
+OPA_AUTH_TYPE = 'None'  # 'None', 'Token', 'Certificate'
+OPA_AUTH_TOKEN = ''  # Token for OPA authentication, defaults to '', required when OPA_AUTH_TYPE = 'Token'.
+OPA_AUTH_CLIENT_CERT = ''  # Content of the client certificate file for mTLS authentication, required when OPA_AUTH_TYPE is "Certificate".
+OPA_AUTH_CLIENT_KEY = ''  # Content of the client key file for mTLS authentication, required when OPA_AUTH_TYPE is "Certificate".
+OPA_AUTH_CA_CERT = ''  # Content of the CA certificate file for mTLS authentication, required when OPA_AUTH_TYPE is "Certificate".
+OPA_AUTH_CUSTOM_HEADERS = {}  # Custom header for OPA authentication, defaults to {}, this will be added to the request headers. TODO: currently unimplemented.
+OPA_REQUEST_TIMEOUT = 1.5  # Connection timeout in seconds, defaults to 1.5 seconds.
+OPA_REQUEST_RETRIES = 2  # Number of retries to connect to OPA service, defaults to 2.
+
+# feature flags
 FLAG_SOURCES = ('flags.sources.SettingsFlagsSource',)
+FLAGS = {'FEATURE_POLICY_AS_CODE_ENABLED': [{'condition': 'boolean', 'value': False}]}

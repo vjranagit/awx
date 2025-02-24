@@ -17,7 +17,8 @@ import urllib.parse as urlparse
 
 # Django
 from django.conf import settings
-
+from django.utils.translation import gettext_lazy as _
+from rest_framework.exceptions import PermissionDenied
 
 # Runner
 import ansible_runner
@@ -25,7 +26,6 @@ import ansible_runner
 # GitPython
 import git
 from gitdb.exc import BadName as BadGitName
-
 
 # AWX
 from awx.main.dispatch.publish import task
@@ -62,10 +62,11 @@ from awx.main.tasks.callback import (
     RunnerCallbackForProjectUpdate,
     RunnerCallbackForSystemJob,
 )
+from awx.main.tasks.policy import evaluate_policy
 from awx.main.tasks.signals import with_signal_handling, signal_callback
 from awx.main.tasks.receptor import AWXReceptorJob
 from awx.main.tasks.facts import start_fact_cache, finish_fact_cache
-from awx.main.exceptions import AwxTaskError, PostRunError, ReceptorNodeNotFound
+from awx.main.exceptions import AwxTaskError, PolicyEvaluationError, PostRunError, ReceptorNodeNotFound
 from awx.main.utils.ansible import read_ansible_config
 from awx.main.utils.execution_environments import CONTAINER_ROOT, to_container_path
 from awx.main.utils.safe_yaml import safe_dump, sanitize_jinja
@@ -81,8 +82,6 @@ from awx.conf.license import get_license
 from awx.main.utils.handlers import SpecialInventoryHandler
 from awx.main.tasks.system import update_smart_memberships_for_inventory, update_inventory_computed_fields
 from awx.main.utils.update_model import update_model
-from rest_framework.exceptions import PermissionDenied
-from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger('awx.main.tasks.jobs')
 
@@ -497,6 +496,7 @@ class BaseTask(object):
             self.instance.send_notification_templates("running")
             private_data_dir = self.build_private_data_dir(self.instance)
             self.pre_run_hook(self.instance, private_data_dir)
+            evaluate_policy(self.instance)
             self.build_project_dir(self.instance, private_data_dir)
             self.instance.log_lifecycle("preparing_playbook")
             if self.instance.cancel_flag or signal_callback():
@@ -624,6 +624,8 @@ class BaseTask(object):
                 elif cancel_flag_value is False:
                     self.runner_callback.delay_update(skip_if_already_set=True, job_explanation="The running ansible process received a shutdown signal.")
                     status = 'failed'
+        except PolicyEvaluationError as exc:
+            self.runner_callback.delay_update(job_explanation=str(exc), result_traceback=str(exc))
         except ReceptorNodeNotFound as exc:
             self.runner_callback.delay_update(job_explanation=str(exc))
         except Exception:
