@@ -1,11 +1,10 @@
 import pytest
-from unittest import mock
 import os
 import tempfile
 import shutil
 
 from awx.main.tasks.jobs import RunJob
-from awx.main.tasks.system import execution_node_health_check, _cleanup_images_and_files
+from awx.main.tasks.system import CleanupImagesAndFiles, execution_node_health_check
 from awx.main.models import Instance, Job
 
 
@@ -27,39 +26,61 @@ def test_no_worker_info_on_AWX_nodes(node_type):
 
 
 @pytest.fixture
-def mock_job_folder(request):
-    pdd_path = tempfile.mkdtemp(prefix='awx_123_')
+def job_folder_factory(request):
+    def _rf(job_id='1234'):
+        pdd_path = tempfile.mkdtemp(prefix=f'awx_{job_id}_')
 
-    def test_folder_cleanup():
-        if os.path.exists(pdd_path):
-            shutil.rmtree(pdd_path)
+        def test_folder_cleanup():
+            if os.path.exists(pdd_path):
+                shutil.rmtree(pdd_path)
 
-    request.addfinalizer(test_folder_cleanup)
+        request.addfinalizer(test_folder_cleanup)
 
-    return pdd_path
+        return pdd_path
+
+    return _rf
+
+
+@pytest.fixture
+def mock_job_folder(job_folder_factory):
+    return job_folder_factory()
 
 
 @pytest.mark.django_db
 def test_folder_cleanup_stale_file(mock_job_folder, mock_me):
-    _cleanup_images_and_files()
+    CleanupImagesAndFiles.run()
     assert os.path.exists(mock_job_folder)  # grace period should protect folder from deletion
 
-    _cleanup_images_and_files(grace_period=0)
+    CleanupImagesAndFiles.run(grace_period=0)
     assert not os.path.exists(mock_job_folder)  # should be deleted
 
 
 @pytest.mark.django_db
-def test_folder_cleanup_running_job(mock_job_folder, mock_me):
-    me_inst = Instance.objects.create(hostname='local_node', uuid='00000000-0000-0000-0000-000000000000')
-    with mock.patch.object(Instance.objects, 'me', return_value=me_inst):
-        job = Job.objects.create(id=123, controller_node=me_inst.hostname, status='running')
-        _cleanup_images_and_files(grace_period=0)
-        assert os.path.exists(mock_job_folder)  # running job should prevent folder from getting deleted
+def test_folder_cleanup_running_job(mock_job_folder, me_inst):
+    job = Job.objects.create(id=1234, controller_node=me_inst.hostname, status='running')
+    CleanupImagesAndFiles.run(grace_period=0)
+    assert os.path.exists(mock_job_folder)  # running job should prevent folder from getting deleted
 
-        job.status = 'failed'
-        job.save(update_fields=['status'])
-        _cleanup_images_and_files(grace_period=0)
-        assert not os.path.exists(mock_job_folder)  # job is finished and no grace period, should delete
+    job.status = 'failed'
+    job.save(update_fields=['status'])
+    CleanupImagesAndFiles.run(grace_period=0)
+    assert not os.path.exists(mock_job_folder)  # job is finished and no grace period, should delete
+
+
+@pytest.mark.django_db
+def test_folder_cleanup_multiple_running_jobs(job_folder_factory, me_inst):
+    jobs = []
+    dirs = []
+    num_jobs = 3
+
+    for i in range(num_jobs):
+        job = Job.objects.create(controller_node=me_inst.hostname, status='running')
+        dirs.append(job_folder_factory(job.id))
+        jobs.append(job)
+
+    CleanupImagesAndFiles.run(grace_period=0)
+
+    assert [os.path.exists(d) for d in dirs] == [True for i in range(num_jobs)]
 
 
 @pytest.mark.django_db

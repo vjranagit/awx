@@ -70,8 +70,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-github-key: ${{ secrets.PRIVATE_GITHUB_KEY }}
 
-      - name: Run smoke test
-        run: ansible-playbook tools/docker-compose/ansible/smoke-test.yml -v
+      - name: Run live dev env tests
+        run: docker exec tools_awx_1 /bin/bash -c "make live_test"
 
   awx-operator:
     runs-on: ubuntu-latest

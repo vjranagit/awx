@@ -353,6 +353,9 @@ test:
 	cd awxkit && $(VENV_BASE)/awx/bin/tox -re py3
 	awx-manage check_migrations --dry-run --check  -n 'missing_migration_file'
 
+live_test:
+	cd awx/main/tests/live && py.test tests/
+
 test_migrations:
 	if [ "$(VENV_BASE)" ]; then \
 		. $(VENV_BASE)/awx/bin/activate; \
