@@ -2,16 +2,42 @@ import json
 import tempfile
 import contextlib
 
+from typing import Optional, Union
+
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from flags.state import flag_enabled
 from opa_client import OpaClient
+from opa_client.base import BaseClient
 from requests import HTTPError
 from rest_framework import serializers
 from rest_framework import fields
 
 from awx.main import models
 from awx.main.exceptions import PolicyEvaluationError
+
+
+# Monkey patching opa_client.base.BaseClient to fix retries and timeout settings
+_original_opa_base_client_init = BaseClient.__init__
+
+
+def _opa_base_client_init_fix(
+    self,
+    host: str = "localhost",
+    port: int = 8181,
+    version: str = "v1",
+    ssl: bool = False,
+    cert: Optional[Union[str, tuple]] = None,
+    headers: Optional[dict] = None,
+    retries: int = 2,
+    timeout: float = 1.5,
+):
+    _original_opa_base_client_init(self, host, port, version, ssl, cert, headers)
+    self.retries = retries
+    self.timeout = timeout
+
+
+BaseClient.__init__ = _opa_base_client_init_fix
 
 
 class _UserSerializer(serializers.ModelSerializer):
@@ -212,8 +238,8 @@ def opa_client(headers=None):
             headers=headers,
             ssl=settings.OPA_SSL,
             cert=cert_temp_file_name,
-            retries=settings.OPA_REQUEST_RETRIES,
             timeout=settings.OPA_REQUEST_TIMEOUT,
+            retries=settings.OPA_REQUEST_RETRIES,
         ) as client:
             yield client
 
