@@ -30,7 +30,6 @@ asgiref==3.7.2
     #   channels-redis
     #   daphne
     #   django
-    #   django-ansible-base
     #   django-cors-headers
 asn1==2.7.0
     # via -r /awx_devel/requirements/requirements.in
@@ -417,7 +416,6 @@ pygerduty==0.38.3
 pyjwt[crypto]==2.8.0
     # via
     #   adal
-    #   django-ansible-base
     #   msal
     #   social-auth-core
     #   twilio
@@ -465,7 +463,7 @@ pyyaml==6.0.1
     #   receptorctl
 pyzstd==0.15.10
     # via -r /awx_devel/requirements/requirements.in
-receptorctl==1.5.1
+receptorctl==1.5.3
     # via -r /awx_devel/requirements/requirements.in
 redis[hiredis]==5.0.1
     # via
@@ -480,7 +478,6 @@ requests==2.32.3
     #   -r /awx_devel/requirements/requirements.in
     #   adal
     #   azure-core
-    #   django-ansible-base
     #   django-oauth-toolkit
     #   kubernetes
     #   msal
@@ -540,7 +537,6 @@ sqlparse==0.5.0
     # via
     #   -r /awx_devel/requirements/requirements.in
     #   django
-    #   django-ansible-base
 tacacs-plus==1.0
     # via -r /awx_devel/requirements/requirements.in
 tempora==5.5.1
@@ -580,7 +576,6 @@ urllib3==1.26.20
     # via
     #   -r /awx_devel/requirements/requirements.in
     #   botocore
-    #   django-ansible-base
     #   kubernetes
     #   requests
 uwsgi==2.0.28
