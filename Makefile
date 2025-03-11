@@ -488,20 +488,24 @@ ui-devel-test: awx/ui/node_modules
 	$(NPM_BIN) --prefix awx/ui --loglevel warn run start
 
 ui-lint:
+	$(NPM_BIN) cache clean --force
 	$(NPM_BIN) --prefix awx/ui install
 	$(NPM_BIN) run --prefix awx/ui lint
 	$(NPM_BIN) run --prefix awx/ui prettier-check
 
 ui-test:
+	$(NPM_BIN) cache clean --force
 	$(NPM_BIN) --prefix awx/ui install
 	$(NPM_BIN) run --prefix awx/ui test
 
 ui-test-screens:
+	$(NPM_BIN) cache clean --force
 	$(NPM_BIN) --prefix awx/ui install
 	$(NPM_BIN) run --prefix awx/ui pretest
 	$(NPM_BIN) run --prefix awx/ui test-screens --runInBand
 
 ui-test-general:
+	$(NPM_BIN) cache clean --force
 	$(NPM_BIN) --prefix awx/ui install
 	$(NPM_BIN) run --prefix awx/ui pretest
 	$(NPM_BIN) run --prefix awx/ui/ test-general --runInBand
