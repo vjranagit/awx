@@ -30,6 +30,7 @@ asgiref==3.7.2
     #   channels-redis
     #   daphne
     #   django
+    #   django-ansible-base
     #   django-cors-headers
 asn1==2.7.0
     # via -r /awx_devel/requirements/requirements.in
@@ -262,7 +263,7 @@ jaraco-text==3.12.0
     # via
     #   irc
     #   jaraco-collections
-jinja2==3.1.5
+jinja2==3.1.6
     # via -r /awx_devel/requirements/requirements.in
 jmespath==1.0.1
     # via
@@ -416,6 +417,7 @@ pygerduty==0.38.3
 pyjwt[crypto]==2.8.0
     # via
     #   adal
+    #   django-ansible-base
     #   msal
     #   social-auth-core
     #   twilio
@@ -478,6 +480,7 @@ requests==2.32.3
     #   -r /awx_devel/requirements/requirements.in
     #   adal
     #   azure-core
+    #   django-ansible-base
     #   django-oauth-toolkit
     #   kubernetes
     #   msal
@@ -537,6 +540,7 @@ sqlparse==0.5.0
     # via
     #   -r /awx_devel/requirements/requirements.in
     #   django
+    #   django-ansible-base
 tacacs-plus==1.0
     # via -r /awx_devel/requirements/requirements.in
 tempora==5.5.1
@@ -576,6 +580,7 @@ urllib3==1.26.20
     # via
     #   -r /awx_devel/requirements/requirements.in
     #   botocore
+    #   django-ansible-base
     #   kubernetes
     #   requests
 uwsgi==2.0.28
