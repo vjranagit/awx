@@ -234,6 +234,13 @@ class UserPermission(ModelAccessPermission):
         raise PermissionDenied()
 
 
+class IsSystemAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        return request.user.is_superuser
+
+
 class IsSystemAdminOrAuditor(permissions.BasePermission):
     """
     Allows write access only to system admin users.
