@@ -522,9 +522,13 @@ class BaseTask(object):
 
             credentials = self.build_credentials_list(self.instance)
 
+            container_root = None
+            if settings.IS_K8S and isinstance(self.instance, ProjectUpdate):
+                container_root = private_data_dir
+
             for credential in credentials:
                 if credential:
-                    credential.credential_type.inject_credential(credential, env, self.safe_cred_env, args, private_data_dir)
+                    credential.credential_type.inject_credential(credential, env, self.safe_cred_env, args, private_data_dir, container_root=container_root)
 
             self.runner_callback.safe_env.update(self.safe_cred_env)
 
