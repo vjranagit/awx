@@ -79,7 +79,7 @@ def get_default_pod_spec():
 CONTAINER_ROOT = '/runner'
 
 
-def to_container_path(path, private_data_dir):
+def to_container_path(path, private_data_dir, container_root=None):
     """Given a path inside of the host machine filesystem,
     this returns the expected path which would be observed by the job running
     inside of the EE container.
@@ -87,9 +87,11 @@ def to_container_path(path, private_data_dir):
     """
     if not os.path.isabs(private_data_dir):
         raise RuntimeError('The private_data_dir path must be absolute')
+    if container_root is None:
+        container_root = CONTAINER_ROOT
     # due to how tempfile.mkstemp works, we are probably passed a resolved path, but unresolved private_data_dir
     resolved_path = Path(path).resolve()
     resolved_pdd = Path(private_data_dir).resolve()
     if resolved_pdd != resolved_path and resolved_pdd not in resolved_path.parents:
         raise RuntimeError(f'Cannot convert path {resolved_path} unless it is a subdir of {resolved_pdd}')
-    return str(resolved_path).replace(str(resolved_pdd), CONTAINER_ROOT, 1)
+    return str(resolved_path).replace(str(resolved_pdd), container_root, 1)

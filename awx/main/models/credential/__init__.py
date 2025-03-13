@@ -491,7 +491,7 @@ class CredentialType(CommonModelNameNotUnique):
     def load_plugin(cls, ns, plugin):
         ManagedCredentialType(namespace=ns, name=plugin.name, kind='external', inputs=plugin.inputs)
 
-    def inject_credential(self, credential, env, safe_env, args, private_data_dir):
+    def inject_credential(self, credential, env, safe_env, args, private_data_dir, container_root=None):
         """
         Inject credential data into the environment variables and arguments
         passed to `ansible-playbook`
@@ -515,6 +515,9 @@ class CredentialType(CommonModelNameNotUnique):
         :param private_data_dir: a temporary directory to store files generated
                                  by `file` injectors (like config files or key
                                  files)
+
+        :param container_root:  root directory inside of container to mount the
+                                private data directory to
         """
         if not self.injectors:
             if self.managed and credential.credential_type.namespace in dir(builtin_injectors):
@@ -618,7 +621,7 @@ class CredentialType(CommonModelNameNotUnique):
             extra_vars = build_extra_vars(self.injectors.get('extra_vars', {}))
             if extra_vars:
                 path = build_extra_vars_file(extra_vars, private_data_dir)
-                container_path = to_container_path(path, private_data_dir)
+                container_path = to_container_path(path, private_data_dir, container_root=container_root)
                 args.extend(['-e', '@%s' % container_path])
 
 
