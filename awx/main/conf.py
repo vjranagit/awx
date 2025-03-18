@@ -1001,9 +1001,9 @@ if settings.FEATURE_POLICY_AS_CODE_ENABLED:  # Unable to use flag_enabled due to
     register(
         'OPA_HOST',
         field_class=fields.CharField,
-        label=_('OPA Server Hostname'),
+        label=_('OPA server hostname'),
         default='',
-        help_text=_('Host to connect to OPA service, when set to the default value of "" policy enforcement will be disabled.'),
+        help_text=_('The hostname used to connect to the OPA server. If empty, policy enforcement will be disabled.'),
         category=('PolicyAsCode'),
         category_slug='policyascode',
         allow_blank=True,
@@ -1012,9 +1012,9 @@ if settings.FEATURE_POLICY_AS_CODE_ENABLED:  # Unable to use flag_enabled due to
     register(
         'OPA_PORT',
         field_class=fields.IntegerField,
-        label=_('OPA Server Port'),
+        label=_('OPA server port'),
         default=8181,
-        help_text=_('Port to connect to OPA service, defaults to 8181.'),
+        help_text=_('The port used to connect to the OPA server. Defaults to 8181.'),
         category=('PolicyAsCode'),
         category_slug='policyascode',
     )
@@ -1022,9 +1022,9 @@ if settings.FEATURE_POLICY_AS_CODE_ENABLED:  # Unable to use flag_enabled due to
     register(
         'OPA_SSL',
         field_class=fields.BooleanField,
-        label=_('Use SSL for OPA Connection'),
+        label=_('Use SSL for OPA connection'),
         default=False,
-        help_text=_('Use SSL to connect to OPA service, defaults to False.'),
+        help_text=_('Enable or disable the use of SSL to connect to the OPA server. Defaults to false.'),
         category=('PolicyAsCode'),
         category_slug='policyascode',
     )
@@ -1032,10 +1032,10 @@ if settings.FEATURE_POLICY_AS_CODE_ENABLED:  # Unable to use flag_enabled due to
     register(
         'OPA_AUTH_TYPE',
         field_class=fields.ChoiceField,
-        label=_('OPA Authentication Type'),
+        label=_('OPA authentication type'),
         choices=[OPA_AUTH_TYPES.NONE, OPA_AUTH_TYPES.TOKEN, OPA_AUTH_TYPES.CERTIFICATE],
         default=OPA_AUTH_TYPES.NONE,
-        help_text=_('Authentication type for OPA: "None", "Token", or "Certificate".'),
+        help_text=_('The authentication type that will be used to connect to the OPA server: "None", "Token", or "Certificate".'),
         category=('PolicyAsCode'),
         category_slug='policyascode',
     )
@@ -1043,9 +1043,11 @@ if settings.FEATURE_POLICY_AS_CODE_ENABLED:  # Unable to use flag_enabled due to
     register(
         'OPA_AUTH_TOKEN',
         field_class=fields.CharField,
-        label=_('OPA Authentication Token'),
+        label=_('OPA authentication token'),
         default='',
-        help_text=_('Token for OPA authentication, required when OPA_AUTH_TYPE is "Token".'),
+        help_text=_(
+            'The token for authentication to the OPA server. Required when OPA_AUTH_TYPE is "Token". If an authorization header is defined in OPA_AUTH_CUSTOM_HEADERS, it will be overridden by OPA_AUTH_TOKEN.'
+        ),
         category=('PolicyAsCode'),
         category_slug='policyascode',
         allow_blank=True,
@@ -1055,9 +1057,9 @@ if settings.FEATURE_POLICY_AS_CODE_ENABLED:  # Unable to use flag_enabled due to
     register(
         'OPA_AUTH_CLIENT_CERT',
         field_class=fields.CharField,
-        label=_('OPA Client Certificate Content'),
+        label=_('OPA client certificate content'),
         default='',
-        help_text=_('Content of the client certificate file for mTLS authentication, required when OPA_AUTH_TYPE is "Certificate".'),
+        help_text=_('The content of the client certificate file for mTLS authentication to the OPA server. Required when OPA_AUTH_TYPE is "Certificate".'),
         category=('PolicyAsCode'),
         category_slug='policyascode',
         allow_blank=True,
@@ -1066,9 +1068,9 @@ if settings.FEATURE_POLICY_AS_CODE_ENABLED:  # Unable to use flag_enabled due to
     register(
         'OPA_AUTH_CLIENT_KEY',
         field_class=fields.CharField,
-        label=_('OPA Client Key Content'),
+        label=_('OPA client key content'),
         default='',
-        help_text=_('Content of the client key for mTLS authentication, required when OPA_AUTH_TYPE is "Certificate".'),
+        help_text=_('The content of the client key for mTLS authentication to the OPA server. Required when OPA_AUTH_TYPE is "Certificate".'),
         category=('PolicyAsCode'),
         category_slug='policyascode',
         allow_blank=True,
@@ -1078,9 +1080,9 @@ if settings.FEATURE_POLICY_AS_CODE_ENABLED:  # Unable to use flag_enabled due to
     register(
         'OPA_AUTH_CA_CERT',
         field_class=fields.CharField,
-        label=_('OPA CA Certificate Content'),
+        label=_('OPA CA certificate content'),
         default='',
-        help_text=_('Content of the CA certificate for mTLS authentication, required when OPA_AUTH_TYPE is "Certificate".'),
+        help_text=_('The content of the CA certificate for mTLS authentication to the OPA server. Required when OPA_AUTH_TYPE is "Certificate".'),
         category=('PolicyAsCode'),
         category_slug='policyascode',
         allow_blank=True,
@@ -1089,20 +1091,19 @@ if settings.FEATURE_POLICY_AS_CODE_ENABLED:  # Unable to use flag_enabled due to
     register(
         'OPA_AUTH_CUSTOM_HEADERS',
         field_class=fields.DictField,
-        label=_('OPA Custom Authentication Headers'),
+        label=_('OPA custom authentication headers'),
         default={},
-        help_text=_('Custom headers for OPA authentication, defaults to {}, this will be added to the request headers. TODO: currently unimplemented.'),
+        help_text=_('Optional custom headers included in requests to the OPA server. Defaults to empty dictionary ({}).'),
         category=('PolicyAsCode'),
         category_slug='policyascode',
-        encrypted=True,
     )
 
     register(
         'OPA_REQUEST_TIMEOUT',
         field_class=fields.FloatField,
-        label=_('OPA Request Timeout'),
+        label=_('OPA request timeout'),
         default=1.5,
-        help_text=_('Connection timeout in seconds, defaults to 1.5 seconds.'),
+        help_text=_('The number of seconds after which the connection to the OPA server will time out. Defaults to 1.5 seconds.'),
         category=('PolicyAsCode'),
         category_slug='policyascode',
     )
@@ -1110,9 +1111,9 @@ if settings.FEATURE_POLICY_AS_CODE_ENABLED:  # Unable to use flag_enabled due to
     register(
         'OPA_REQUEST_RETRIES',
         field_class=fields.IntegerField,
-        label=_('OPA Request Retry Count'),
+        label=_('OPA request retry count'),
         default=2,
-        help_text=_('Number of retries to connect to OPA service, defaults to 2.'),
+        help_text=_('The number of retry attempts for connecting to the OPA server. Default is 2.'),
         category=('PolicyAsCode'),
         category_slug='policyascode',
     )

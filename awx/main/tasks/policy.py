@@ -2,6 +2,8 @@ import json
 import tempfile
 import contextlib
 
+from pprint import pformat
+
 from typing import Optional, Union
 
 from django.conf import settings
@@ -40,10 +42,22 @@ def _opa_base_client_init_fix(
 BaseClient.__init__ = _opa_base_client_init_fix
 
 
+class _TeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Team
+        fields = ('id', 'name')
+
+
 class _UserSerializer(serializers.ModelSerializer):
+    teams = serializers.SerializerMethodField()
+
     class Meta:
         model = models.User
-        fields = ('id', 'username', 'is_superuser')
+        fields = ('id', 'username', 'is_superuser', 'teams')
+
+    def get_teams(self, user: models.User):
+        teams = models.Team.access_qs(user, 'member')
+        return _TeamSerializer(many=True).to_representation(teams)
 
 
 class _ExecutionEnvironmentSerializer(serializers.ModelSerializer):
@@ -74,7 +88,7 @@ class _InstanceGroupSerializer(serializers.ModelSerializer):
 class _InventorySourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.InventorySource
-        fields = ('id', 'name', 'type', 'kind')
+        fields = ('id', 'name', 'source', 'status')
 
 
 class _InventorySerializer(serializers.ModelSerializer):
@@ -86,8 +100,13 @@ class _InventorySerializer(serializers.ModelSerializer):
             'id',
             'name',
             'description',
+            'kind',
             'total_hosts',
             'total_groups',
+            'has_inventory_sources',
+            'total_inventory_sources',
+            'has_active_failures',
+            'hosts_with_active_failures',
             'inventory_sources',
         )
 
@@ -109,6 +128,15 @@ class _WorkflowJobTemplateSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'job_type',
+        )
+
+
+class _WorkflowJobSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.WorkflowJob
+        fields = (
+            'id',
+            'name',
         )
 
 
@@ -138,15 +166,45 @@ class _ProjectSerializer(serializers.ModelSerializer):
         )
 
 
+class _CredentialSerializer(serializers.ModelSerializer):
+    organization = _OrganizationSerializer()
+
+    class Meta:
+        model = models.Credential
+        fields = (
+            'id',
+            'name',
+            'description',
+            'organization',
+            'credential_type',
+            'managed',
+            'kind',
+            'cloud',
+            'kubernetes',
+        )
+
+
+class _LabelSerializer(serializers.ModelSerializer):
+    organization = _OrganizationSerializer()
+
+    class Meta:
+        model = models.Label
+        fields = ('id', 'name', 'organization')
+
+
 class JobSerializer(serializers.ModelSerializer):
     created_by = _UserSerializer()
+    credentials = _CredentialSerializer(many=True)
     execution_environment = _ExecutionEnvironmentSerializer()
     instance_group = _InstanceGroupSerializer()
+    inventory = _InventorySerializer()
     job_template = _JobTemplateSerializer()
+    labels = _LabelSerializer(many=True)
     organization = _OrganizationSerializer()
     project = _ProjectSerializer()
     extra_vars = fields.SerializerMethodField()
     hosts_count = fields.SerializerMethodField()
+    workflow_job = fields.SerializerMethodField()
     workflow_job_template = fields.SerializerMethodField()
 
     class Meta:
@@ -156,6 +214,7 @@ class JobSerializer(serializers.ModelSerializer):
             'name',
             'created',
             'created_by',
+            'credentials',
             'execution_environment',
             'extra_vars',
             'forks',
@@ -165,6 +224,7 @@ class JobSerializer(serializers.ModelSerializer):
             'job_template',
             'job_type',
             'job_type_name',
+            'labels',
             'launch_type',
             'limit',
             'launched_by',
@@ -173,8 +233,7 @@ class JobSerializer(serializers.ModelSerializer):
             'project',
             'scm_branch',
             'scm_revision',
-            'workflow_job_id',
-            'workflow_node_id',
+            'workflow_job',
             'workflow_job_template',
         )
 
@@ -183,6 +242,12 @@ class JobSerializer(serializers.ModelSerializer):
 
     def get_hosts_count(self, obj: models.Job):
         return obj.hosts.count()
+
+    def get_workflow_job(self, obj: models.Job):
+        workflow_job: models.WorkflowJob = obj.get_workflow_job()
+        if workflow_job is None:
+            return None
+        return _WorkflowJobSerializer().to_representation(workflow_job)
 
     def get_workflow_job_template(self, obj: models.Job):
         workflow_job: models.WorkflowJob = obj.get_workflow_job()
@@ -255,11 +320,13 @@ def evaluate_policy(instance):
     if not isinstance(instance, models.Job):
         return
 
+    instance.log_lifecycle("evaluate_policy")
+
     input_data = JobSerializer(instance=instance).data
 
-    headers = None
+    headers = settings.OPA_AUTH_CUSTOM_HEADERS
     if settings.OPA_AUTH_TYPE == OPA_AUTH_TYPES.TOKEN:
-        headers = {'Authorization': 'Bearer {}'.format(settings.OPA_AUTH_TOKEN)}
+        headers.update({'Authorization': 'Bearer {}'.format(settings.OPA_AUTH_TOKEN)})
 
     if settings.OPA_AUTH_TYPE == OPA_AUTH_TYPES.CERTIFICATE and not settings.OPA_SSL:
         raise PolicyEvaluationError(_('OPA_AUTH_TYPE=Certificate requires OPA_SSL to be enabled.'))
@@ -277,36 +344,66 @@ def evaluate_policy(instance):
         if cert_settings_missing:
             raise PolicyEvaluationError(_('Following certificate settings are missing for OPA_AUTH_TYPE=Certificate: {}').format(cert_settings_missing))
 
+    query_paths = [
+        ('Organization', instance.organization.opa_query_path),
+        ('Inventory', instance.inventory.opa_query_path),
+        ('Job template', instance.job_template.opa_query_path),
+    ]
+    violations = dict()
+    errors = dict()
+
     try:
         with opa_client(headers=headers) as client:
-            try:
-                response = client.query_rule(input_data=input_data, package_path='job_template', rule_name='response')
-            except HTTPError as e:
-                message = _('Call to OPA failed. Exception: {}').format(e)
+            for path_type, query_path in query_paths:
+                response = dict()
                 try:
-                    error_data = e.response.json()
-                except ValueError:
-                    raise PolicyEvaluationError(message)
+                    if not query_path:
+                        continue
 
-                error_code = error_data.get("code")
-                error_message = error_data.get("message")
-                if error_code or error_message:
-                    message = _('Call to OPA failed. Code: {}, Message: {}').format(error_code, error_message)
-                raise PolicyEvaluationError(message)
-            except Exception as e:
-                raise PolicyEvaluationError(_('Call to OPA failed. Exception: {}').format(e))
+                    response = client.query_rule(input_data=input_data, package_path=query_path)
 
-            result = response.get('result')
-            if result is None:
-                raise PolicyEvaluationError(_('Call to OPA did not return a "result" property. The path refers to an undefined document.'))
+                except HTTPError as e:
+                    message = _('Call to OPA failed. Exception: {}').format(e)
+                    try:
+                        error_data = e.response.json()
+                    except ValueError:
+                        errors[path_type] = message
+                        continue
 
-            result_serializer = OPAResultSerializer(data=result)
-            if not result_serializer.is_valid():
-                raise PolicyEvaluationError(_('OPA policy returned invalid result.'))
+                    error_code = error_data.get("code")
+                    error_message = error_data.get("message")
+                    if error_code or error_message:
+                        message = _('Call to OPA failed. Code: {}, Message: {}').format(error_code, error_message)
+                    errors[path_type] = message
+                    continue
 
-            result_data = result_serializer.validated_data
-            if not result_data["allowed"]:
-                violations = result_data.get("violations", [])
-                raise PolicyEvaluationError(_('OPA policy denied the request, Violations: {}').format(violations))
+                except Exception as e:
+                    errors[path_type] = _('Call to OPA failed. Exception: {}').format(e)
+                    continue
+
+                result = response.get('result')
+                if result is None:
+                    errors[path_type] = _('Call to OPA did not return a "result" property. The path refers to an undefined document.')
+                    continue
+
+                result_serializer = OPAResultSerializer(data=result)
+                if not result_serializer.is_valid():
+                    errors[path_type] = _('OPA policy returned invalid result.')
+                    continue
+
+                result_data = result_serializer.validated_data
+                if not result_data.get("allowed") and (result_violations := result_data.get("violations")):
+                    violations[path_type] = result_violations
+
+            format_results = dict()
+            if any(errors[e] for e in errors):
+                format_results["Errors"] = errors
+
+            if any(violations[v] for v in violations):
+                format_results["Violations"] = violations
+
+            if violations or errors:
+                raise PolicyEvaluationError(pformat(format_results, width=80))
+
     except Exception as e:
-        raise PolicyEvaluationError(_('Policy evaluation failed, Exception: {}').format(e))
+        raise PolicyEvaluationError(_('This job cannot be executed due to a policy violation or error. See the following details:\n{}').format(e))
