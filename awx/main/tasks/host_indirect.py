@@ -45,22 +45,35 @@ def build_indirect_host_data(job: Job, job_event_queries: dict[str, dict[str, st
     facts_missing_logged = False
     unhashable_facts_logged = False
 
+    job_event_queries_fqcn = {}
+    for query_k, query_v in job_event_queries.items():
+        if len(parts := query_k.split('.')) != 3:
+            logger.info(f"Skiping malformed query '{query_k}'. Expected to be of the form 'a.b.c'")
+            continue
+        if parts[2] != '*':
+            continue
+        job_event_queries_fqcn['.'.join(parts[0:2])] = query_v
+
     for event in job.job_events.filter(event_data__isnull=False).iterator():
         if 'res' not in event.event_data:
             continue
 
-        if 'resolved_action' not in event.event_data or event.event_data['resolved_action'] not in job_event_queries.keys():
+        if not (resolved_action := event.event_data.get('resolved_action', None)):
             continue
 
-        resolved_action = event.event_data['resolved_action']
+        if len(resolved_action_parts := resolved_action.split('.')) != 3:
+            logger.debug(f"Malformed invocation module name '{resolved_action}'. Expected to be of the form 'a.b.c'")
+            continue
 
-        # We expect a dict with a 'query' key for the resolved_action
-        if 'query' not in job_event_queries[resolved_action]:
+        resolved_action_fqcn = '.'.join(resolved_action_parts[0:2])
+
+        # Match module invocation to collection queries
+        # First match against fully qualified query names i.e. a.b.c
+        # Then try and match against wildcard queries i.e. a.b.*
+        if not (jq_str_for_event := job_event_queries.get(resolved_action, job_event_queries_fqcn.get(resolved_action_fqcn, {})).get('query')):
             continue
 
         # Recall from cache, or process the jq expression, and loop over the jq results
-        jq_str_for_event = job_event_queries[resolved_action]['query']
-
         if jq_str_for_event not in compiled_jq_expressions:
             compiled_jq_expressions[resolved_action] = jq.compile(jq_str_for_event)
         compiled_jq = compiled_jq_expressions[resolved_action]
