@@ -14,7 +14,20 @@ __all__ = [
     'STANDARD_INVENTORY_UPDATE_ENV',
 ]
 
-CLOUD_PROVIDERS = ('azure_rm', 'ec2', 'gce', 'vmware', 'openstack', 'rhv', 'satellite6', 'controller', 'insights', 'terraform', 'openshift_virtualization')
+CLOUD_PROVIDERS = (
+    'azure_rm',
+    'ec2',
+    'gce',
+    'vmware',
+    'vmware_esxi',
+    'openstack',
+    'rhv',
+    'satellite6',
+    'controller',
+    'insights',
+    'terraform',
+    'openshift_virtualization',
+)
 PRIVILEGE_ESCALATION_METHODS = [
     ('sudo', _('Sudo')),
     ('su', _('Su')),

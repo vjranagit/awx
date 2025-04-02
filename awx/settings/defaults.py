@@ -746,6 +746,11 @@ VMWARE_EXCLUDE_EMPTY_GROUPS = True
 
 VMWARE_VALIDATE_CERTS = False
 
+# -----------------
+# -- VMware ESXi --
+# -----------------
+VMWARE_ESXI_EXCLUDE_EMPTY_GROUPS = True
+
 # ---------------------------
 # -- Google Compute Engine --
 # ---------------------------

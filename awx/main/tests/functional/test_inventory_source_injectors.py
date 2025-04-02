@@ -48,6 +48,8 @@ def credential_kind(source):
     """Given the inventory source kind, return expected credential kind"""
     if source == 'openshift_virtualization':
         return 'kubernetes_bearer_token'
+    if source == 'vmware_esxi':
+        return 'vmware'
     return source.replace('ec2', 'aws')
 
 

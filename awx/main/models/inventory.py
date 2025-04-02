@@ -928,6 +928,7 @@ class InventorySourceOptions(BaseModel):
         ('gce', _('Google Compute Engine')),
         ('azure_rm', _('Microsoft Azure Resource Manager')),
         ('vmware', _('VMware vCenter')),
+        ('vmware_esxi', _('VMware ESXi')),
         ('satellite6', _('Red Hat Satellite 6')),
         ('openstack', _('OpenStack')),
         ('rhv', _('Red Hat Virtualization')),
@@ -1048,7 +1049,9 @@ class InventorySourceOptions(BaseModel):
             # If a credential was provided, it's important that it matches
             # the actual inventory source being used (Amazon requires Amazon
             # credentials; Rackspace requires Rackspace credentials; etc...)
-            if source.replace('ec2', 'aws') != cred.kind:
+            if source == 'vmware_esxi' and source.replace('vmware_esxi', 'vmware') != cred.kind:
+                return _('VMWARE inventory sources (such as %s) require credentials for the matching cloud service.') % source
+            if source == 'ec2' and source.replace('ec2', 'aws') != cred.kind:
                 return _('Cloud-based inventory sources (such as %s) require credentials for the matching cloud service.') % source
         # Allow an EC2 source to omit the credential.  If Tower is running on
         # an EC2 instance with an IAM Role assigned, boto will use credentials
@@ -1068,7 +1071,7 @@ class InventorySourceOptions(BaseModel):
         credential = None
         for cred in self.credentials.all():
             if self.source in CLOUD_PROVIDERS:
-                if cred.kind == self.source.replace('ec2', 'aws'):
+                if cred.kind == self.source.replace('ec2', 'aws') or cred.kind == self.source.replace('vmware_esxi', 'vmware'):
                     credential = cred
                     break
             else:
@@ -1437,7 +1440,7 @@ class PluginFileInjector(object):
     namespace = None
     collection = None
     collection_migration = '2.9'  # Starting with this version, we use collections
-    use_fqcn = False  # plugin: name versus plugin: namespace.collection.name
+    use_fqcn = False  # plugin: name versus plugin: namespace.collection.name, set to True in each plugin as needed
 
     # TODO: delete this method and update unit tests
     @classmethod
@@ -1566,6 +1569,14 @@ class vmware(PluginFileInjector):
     base_injector = 'managed'
     namespace = 'community'
     collection = 'vmware'
+
+
+class vmware_esxi(PluginFileInjector):
+    plugin_name = 'esxi_hosts'
+    base_injector = 'managed'
+    namespace = 'vmware'
+    collection = 'vmware'
+    use_fqcn = True
 
 
 class openstack(PluginFileInjector):
