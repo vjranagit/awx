@@ -182,9 +182,7 @@ django-radius==1.5.1
 django-solo==2.2.0
     # via -r /awx_devel/requirements/requirements.in
 django-split-settings==1.0.0
-    # via
-    #   -r /awx_devel/requirements/requirements.in
-    #   django-ansible-base
+    # via -r /awx_devel/requirements/requirements.in
 djangorestframework==3.15.2
     # via
     #   -r /awx_devel/requirements/requirements.in
@@ -193,6 +191,8 @@ djangorestframework-yaml==2.0.0
     # via -r /awx_devel/requirements/requirements.in
 docutils==0.20.1
     # via python-daemon
+dynaconf==3.2.10
+    # via django-ansible-base
 enum-compat==0.0.3
     # via asn1
 filelock==3.13.1
@@ -541,10 +541,10 @@ social-auth-core==4.5.4
     # via
     #   -r /awx_devel/requirements/requirements.in
     #   social-auth-app-django
-sqlparse==0.5.0
+sqlparse==0.5.3
     # via
-    #   -r /awx_devel/requirements/requirements.in
     #   django
+    #   django-ansible-base
 tacacs-plus==1.0
     # via -r /awx_devel/requirements/requirements.in
 tempora==5.5.1
