@@ -1242,7 +1242,6 @@ INDIRECT_HOST_AUDIT_RECORD_MAX_AGE_DAYS = 7
 # setting for Policy as Code feature
 FEATURE_POLICY_AS_CODE_ENABLED = False
 
-OPA_POLICY_EVALUATION_DEFAULT_RESULT = {'allowed': True}  # Default policy enforcement decision if policy evaluation fail for any reason.
 OPA_HOST = ''  # The hostname used to connect to the OPA server. If empty, policy enforcement will be disabled.
 OPA_PORT = 8181  # The port used to connect to the OPA server. Defaults to 8181.
 OPA_SSL = False  # Enable or disable the use of SSL to connect to the OPA server. Defaults to false.

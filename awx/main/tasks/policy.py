@@ -274,38 +274,91 @@ class OPA_AUTH_TYPES:
 
 @contextlib.contextmanager
 def opa_cert_file():
-    if settings.OPA_AUTH_TYPE == OPA_AUTH_TYPES.CERTIFICATE:
-        with tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".pem") as cert_temp:
-            cert_temp.write(settings.OPA_AUTH_CA_CERT)
-            cert_temp.write("\n")
-            cert_temp.write(settings.OPA_AUTH_CLIENT_CERT)
-            cert_temp.write("\n")
-            cert_temp.write(settings.OPA_AUTH_CLIENT_KEY)
-            cert_temp.write("\n")
-            cert_temp.flush()
-            yield cert_temp.name
-    elif settings.OPA_SSL and settings.OPA_AUTH_CA_CERT:
-        with tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".pem") as cert_temp:
-            cert_temp.write(settings.OPA_AUTH_CA_CERT)
-            cert_temp.write("\n")
-            cert_temp.flush()
-            yield cert_temp.name
-    else:
-        yield None
+    """
+    Context manager that creates temporary certificate files for OPA authentication.
+
+    For mTLS (mutual TLS), we need:
+    - Client certificate and key for client authentication
+    - CA certificate (optional) for server verification
+
+    Returns:
+        tuple: (client_cert_path, verify_path)
+            - client_cert_path: Path to client cert file or None if not using client cert
+            - verify_path: Path to CA cert file, True to use system CA store, or False for no verification
+    """
+    client_cert_temp = None
+    ca_temp = None
+
+    try:
+        # Case 1: Full mTLS with client cert and optional CA cert
+        if settings.OPA_AUTH_TYPE == OPA_AUTH_TYPES.CERTIFICATE:
+            # Create client certificate file (required for mTLS)
+            client_cert_temp = tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".pem")
+            client_cert_temp.write(settings.OPA_AUTH_CLIENT_CERT)
+            client_cert_temp.write("\n")
+            client_cert_temp.write(settings.OPA_AUTH_CLIENT_KEY)
+            client_cert_temp.write("\n")
+            client_cert_temp.flush()
+
+            # If CA cert is provided, use it for server verification
+            # Otherwise, use system CA store (True)
+            if settings.OPA_AUTH_CA_CERT:
+                ca_temp = tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".pem")
+                ca_temp.write(settings.OPA_AUTH_CA_CERT)
+                ca_temp.write("\n")
+                ca_temp.flush()
+                verify_path = ca_temp.name
+            else:
+                verify_path = True  # Use system CA store
+
+            yield (client_cert_temp.name, verify_path)
+
+        # Case 2: TLS with only server verification (no client cert)
+        elif settings.OPA_SSL:
+            # If CA cert is provided, use it for server verification
+            # Otherwise, use system CA store (True)
+            if settings.OPA_AUTH_CA_CERT:
+                ca_temp = tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".pem")
+                ca_temp.write(settings.OPA_AUTH_CA_CERT)
+                ca_temp.write("\n")
+                ca_temp.flush()
+                verify_path = ca_temp.name
+            else:
+                verify_path = True  # Use system CA store
+
+            yield (None, verify_path)
+
+        # Case 3: No TLS
+        else:
+            yield (None, False)
+
+    finally:
+        # Clean up temporary files
+        if client_cert_temp:
+            client_cert_temp.close()
+        if ca_temp:
+            ca_temp.close()
 
 
 @contextlib.contextmanager
 def opa_client(headers=None):
-    with opa_cert_file() as cert_temp_file_name:
+    with opa_cert_file() as cert_files:
+        cert, verify = cert_files
+
         with OpaClient(
             host=settings.OPA_HOST,
             port=settings.OPA_PORT,
             headers=headers,
             ssl=settings.OPA_SSL,
-            cert=cert_temp_file_name,
+            cert=cert,
             timeout=settings.OPA_REQUEST_TIMEOUT,
             retries=settings.OPA_REQUEST_RETRIES,
         ) as client:
+            # Workaround for https://github.com/Turall/OPA-python-client/issues/32
+            # by directly setting cert and verify on requests.session
+            client._session.cert = cert
+            client._session.verify = verify
+
             yield client
 
 
