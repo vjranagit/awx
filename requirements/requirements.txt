@@ -181,8 +181,6 @@ django-radius==1.5.1
     # via -r /awx_devel/requirements/requirements.in
 django-solo==2.2.0
     # via -r /awx_devel/requirements/requirements.in
-django-split-settings==1.0.0
-    # via -r /awx_devel/requirements/requirements.in
 djangorestframework==3.15.2
     # via
     #   -r /awx_devel/requirements/requirements.in

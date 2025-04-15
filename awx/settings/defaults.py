@@ -11,7 +11,6 @@ from datetime import timedelta
 
 # python-ldap
 import ldap
-from split_settings.tools import include
 
 
 DEBUG = True
@@ -1175,16 +1174,11 @@ METRICS_SUBSYSTEM_CONFIG = {
     }
 }
 
-
 # django-ansible-base
 ANSIBLE_BASE_TEAM_MODEL = 'main.Team'
 ANSIBLE_BASE_ORGANIZATION_MODEL = 'main.Organization'
 ANSIBLE_BASE_RESOURCE_CONFIG_MODULE = 'awx.resource_api'
 ANSIBLE_BASE_PERMISSION_MODEL = 'main.Permission'
-
-from ansible_base.lib import dynamic_config  # noqa: E402
-
-include(os.path.join(os.path.dirname(dynamic_config.__file__), 'dynamic_settings.py'))
 
 # Add a postfix to the API URL patterns
 # example if set to '' API pattern will be /api

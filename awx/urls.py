@@ -38,7 +38,7 @@ def get_urlpatterns(prefix=None):
         re_path(r'^login/', handle_login_redirect),
     ]
 
-    if settings.SETTINGS_MODULE == 'awx.settings.development':
+    if settings.DYNACONF.is_development_mode:
         try:
             import debug_toolbar
 
