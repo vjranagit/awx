@@ -138,7 +138,7 @@ deprecated==1.2.14
     #   pygithub
 distro==1.9.0
     # via -r /awx_devel/requirements/requirements.in
-django==4.2.18
+django==4.2.20
     # via
     #   -r /awx_devel/requirements/requirements.in
     #   channels
