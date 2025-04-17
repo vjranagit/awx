@@ -1495,6 +1495,7 @@ class PluginFileInjector(object):
             from awx.main.models.credential import injectors as builtin_injectors
 
             cred_kind = inventory_update.source.replace('ec2', 'aws')
+            cred_kind = inventory_update.source.replace('vmware_esxi', 'vmware')
             if cred_kind in dir(builtin_injectors):
                 getattr(builtin_injectors, cred_kind)(credential, injected_env, private_data_dir)
         elif self.base_injector == 'template':
