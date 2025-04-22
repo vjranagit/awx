@@ -1,6 +1,6 @@
 aiohttp>=3.11.6 # CVE-2024-52304
 ansiconv==1.0.0  # UPGRADE BLOCKER: from 2013, consider replacing instead of upgrading
-ansible-runner==2.4.0
+ansible-runner==2.4.1
 jq  # used for indirect host counting feature
 asciichartpy
 asn1
@@ -59,7 +59,7 @@ python-tss-sdk>=1.2.1
 python-ldap
 pyyaml>=6.0.1
 pyzstd  # otel collector log file compression library
-receptorctl==1.5.3
+receptorctl==1.5.4
 social-auth-core == 4.5.4 # hard pinned due to resolver picking CVE version when uncapped
 social-auth-app-django==5.4.2  # see UPGRADE BLOCKERs
 redis[hiredis]
