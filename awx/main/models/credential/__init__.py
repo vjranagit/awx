@@ -1054,7 +1054,7 @@ insights = ManagedCredentialType(
                 'label': gettext_noop('Username'),
                 'type': 'string',
                 'help_text': gettext_noop(
-                    'Required for basic authentication. ' 'May be blank if using client_id and client_secret',
+                    'Username is required for basic authentication.',
                 ),
             },
             {
@@ -1063,7 +1063,7 @@ insights = ManagedCredentialType(
                 'type': 'string',
                 'secret': True,
                 'help_text': gettext_noop(
-                    'Required for basic authentication. ' 'May be blank if using client_id and client_secret',
+                    'Password is required for basic authentication',
                 ),
             },
             {
@@ -1071,7 +1071,7 @@ insights = ManagedCredentialType(
                 'label': gettext_noop('Client ID'),
                 'type': 'string',
                 'help_text': gettext_noop(
-                    'Required for service account authentication. ' 'May be blank if using username and password',
+                    'Enter client ID to create a service account credential.',
                 ),
             },
             {
@@ -1080,7 +1080,7 @@ insights = ManagedCredentialType(
                 'type': 'string',
                 'secret': True,
                 'help_text': gettext_noop(
-                    'Required for service account authentication. ' 'May be blank if using username and password',
+                    'Enter client secret to create a service account credential.',
                 ),
             },
         ],
