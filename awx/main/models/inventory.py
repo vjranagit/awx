@@ -1402,3 +1402,38 @@ class CustomInventoryScript(CommonModelNameNotUnique):
 
     def get_absolute_url(self, request=None):
         return reverse('api:inventory_script_detail', kwargs={'pk': self.pk}, request=request)
+
+
+class InventoryGroupVariablesWithHistory(models.Model):
+    """
+    Represents the inventory variables of one inventory group.
+
+    The purpose of this model is to persist the update history of the group
+    variables. The update history is maintained in another class
+    (`InventoryGroupVariables`), this class here is just a container for the
+    database storage.
+    """
+
+    class Meta:
+        constraints = [
+            # Do not allow the same inventory/group combination more than once.
+            models.UniqueConstraint(
+                fields=["inventory", "group"],
+                name="unique_inventory_group",
+                violation_error_message=_("Inventory/Group combination must be unique."),
+            ),
+        ]
+
+    inventory = models.ForeignKey(
+        'Inventory',
+        related_name='inventory_group_variables',
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    group = models.ForeignKey(  # `None` denotes the 'all'-group.
+        'Group',
+        related_name='inventory_group_variables',
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    variables = models.JSONField()  # The group variables, including their history.
