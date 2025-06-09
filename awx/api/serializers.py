@@ -50,9 +50,6 @@ from ansible_base.lib.utils.models import get_type_for_model
 from ansible_base.rbac.models import RoleEvaluation, ObjectRole
 from ansible_base.rbac import permission_registry
 
-# django-flags
-from flags.state import flag_enabled
-
 # AWX
 from awx.main.access import get_user_capabilities
 from awx.main.constants import ACTIVE_STATES, CENSOR_VALUE, org_role_to_permission
@@ -745,12 +742,9 @@ class EmptySerializer(serializers.Serializer):
     pass
 
 
-class OpaQueryPathEnabledMixin(serializers.Serializer):
+class OpaQueryPathMixin(serializers.Serializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        if not flag_enabled("FEATURE_POLICY_AS_CODE_ENABLED") and 'opa_query_path' in self.fields:
-            self.fields.pop('opa_query_path')
 
     def validate_opa_query_path(self, value):
         # Decode the URL and re-encode it
@@ -763,7 +757,7 @@ class OpaQueryPathEnabledMixin(serializers.Serializer):
         return value
 
 
-class UnifiedJobTemplateSerializer(BaseSerializer, OpaQueryPathEnabledMixin):
+class UnifiedJobTemplateSerializer(BaseSerializer, OpaQueryPathMixin):
     # As a base serializer, the capabilities prefetch is not used directly,
     # instead they are derived from the Workflow Job Template Serializer and the Job Template Serializer, respectively.
     capabilities_prefetch = []
@@ -1440,7 +1434,7 @@ class OAuth2ApplicationSerializer(BaseSerializer):
         return ret
 
 
-class OrganizationSerializer(BaseSerializer, OpaQueryPathEnabledMixin):
+class OrganizationSerializer(BaseSerializer, OpaQueryPathMixin):
     show_capabilities = ['edit', 'delete']
 
     class Meta:
@@ -1800,7 +1794,7 @@ class LabelsListMixin(object):
         return res
 
 
-class InventorySerializer(LabelsListMixin, BaseSerializerWithVariables, OpaQueryPathEnabledMixin):
+class InventorySerializer(LabelsListMixin, BaseSerializerWithVariables, OpaQueryPathMixin):
     show_capabilities = ['edit', 'delete', 'adhoc', 'copy']
     capabilities_prefetch = ['admin', 'adhoc', {'copy': 'organization.inventory_admin'}]
 
