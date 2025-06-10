@@ -77,13 +77,7 @@ def _initialize_credential(
 
 
 def azure_keyvault_backend(
-    *,
-    url: str,
-    client: str = '',
-    secret: str = '',
-    tenant: str = '',
-    secret_field: str,
-    secret_version: str = '',
+    *, url: str, client: str = '', secret: str = '', tenant: str = '', secret_field: str, secret_version: str = '', **kwargs
 ) -> str | None:
     """Get a credential and retrieve a secret from an Azure Key Vault.
 
