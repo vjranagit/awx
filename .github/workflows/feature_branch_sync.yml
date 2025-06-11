@@ -10,6 +10,8 @@ on:
 jobs:
   rebase:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout release_4.6-next Branch
         uses: actions/checkout@v4
@@ -23,6 +25,8 @@ jobs:
       - name: Attempt Rebase
         id: rebase_attempt # Give this step an something to reference its outcome
         run: |
+          git config user.name "GitHub Actions"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout release_4.6-next
           # Attempt the rebase.
           # The '|| true' allows the script to continue even if rebase fails,
