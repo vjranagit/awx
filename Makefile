@@ -315,7 +315,7 @@ black: reports
 	@chmod +x .git/hooks/pre-commit
 
 genschema: reports
-	$(MAKE) swagger PYTEST_ARGS="--genschema --create-db "
+	$(MAKE) swagger PYTEST_ADDOPTS="--genschema --create-db "
 	mv swagger.json schema.json
 
 swagger: reports
@@ -354,7 +354,7 @@ live_test:
 
 ## Run all API unit tests with coverage enabled.
 test_coverage:
-	$(MAKE) test PYTEST_ARGS="--create-db $(COVERAGE_ARGS)"
+	$(MAKE) test PYTEST_ADDOPTS="--create-db $(COVERAGE_ARGS)"
 	@if [ "${GITHUB_ACTIONS}" = "true" ]; \
 	then \
 	  echo 'cov-report-files=awxkit/coverage.xml,reports/coverage.xml' >> "${GITHUB_OUTPUT}"; \
