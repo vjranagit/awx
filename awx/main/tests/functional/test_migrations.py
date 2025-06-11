@@ -140,3 +140,22 @@ class TestMigrationSmoke:
         Project = new_state.apps.get_model('main', 'Project')
         for proj in Project.objects.all():
             assert proj.org_unique is True
+
+        # Piggyback test for the new credential types
+        validate_exists = ['GitHub App Installation Access Token Lookup', 'Terraform backend configuration']
+        CredentialType = new_state.apps.get_model('main', 'CredentialType')
+        # simulate an upgrade by deleting existing types with these names
+        for expected_name in validate_exists:
+            ct = CredentialType.objects.filter(name=expected_name).first()
+            if ct:
+                ct.delete()
+
+        new_state = migrator.apply_tested_migration(
+            ('main', '0201_create_managed_creds'),
+        )
+
+        CredentialType = new_state.apps.get_model('main', 'CredentialType')
+        for expected_name in validate_exists:
+            assert CredentialType.objects.filter(
+                name=expected_name
+            ).exists(), f'Could not find {expected_name} credential type name, all names: {list(CredentialType.objects.values_list("name", flat=True))}'
