@@ -1,4 +1,4 @@
-name: Rebase release_4.6 into release_4.6-next
+nname: Rebase release_4.6-next and stable-2.6
 
 on:
   push:
@@ -12,41 +12,41 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    strategy:
+      matrix:
+        target_branch:
+          - release_4.6-next
+          - stable-2.6
     steps:
-      - name: Checkout release_4.6-next Branch
+      - name: Checkout ${{ matrix.target_branch }} Branch
         uses: actions/checkout@v4
         with:
-          ref: release_4.6-next
+          ref: ${{ matrix.target_branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Fetch release_4.6 Branch
+      - name: Fetch release_4.6 Branch for ${{ matrix.target_branch }}
         run: git fetch origin release_4.6:release_4.6
 
-      - name: Attempt Rebase
-        id: rebase_attempt # Give this step an something to reference its outcome
+      - name: Attempt Rebase release_4.6 into ${{ matrix.target_branch }}
+        id: rebase_attempt
         run: |
           git config user.name "GitHub Actions"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout release_4.6-next
-          # Attempt the rebase.
-          # The '|| true' allows the script to continue even if rebase fails,
-          # so we can check the status and then abort.
+          git checkout ${{ matrix.target_branch }}
           git rebase release_4.6 || true
         continue-on-error: true # Allow this step to fail without stopping the workflow immediately
 
-      - name: Check for Conflicts and Abort if Necessary
+      - name: Check for Conflicts and Abort if Necessary for ${{ matrix.target_branch }}
         run: |
-          # Check if there are any unmerged paths (i.e., conflicts)
           if git status --porcelain | grep "^UU"; then
-            echo "::error::Rebase failed due to merge conflicts. Aborting rebase."
+            echo "::error::Rebase failed for ${{ matrix.target_branch }} due to merge conflicts. Aborting rebase."
             git rebase --abort
             exit 1 # Fail the job explicitly
           else
-            echo "Rebase completed without conflicts."
+            echo "Rebase for ${{ matrix.target_branch }} completed without conflicts."
           fi
 
-      - name: Force Push Rebased release_4.6-next Branch
-        # Only run this step if the previous steps succeeded (no conflicts)
+      - name: Force Push Rebased ${{ matrix.target_branch }} Branch
         if: success() && steps.rebase_attempt.outcome != 'failure'
         run: |
-          git push --force origin release_4.6-next
+          git push --force origin ${{ matrix.target_branch }}
