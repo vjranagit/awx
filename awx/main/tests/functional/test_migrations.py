@@ -110,11 +110,18 @@ class TestMigrationSmoke:
         # Test create a Project with a duplicate name
         Organization = new_state.apps.get_model('main', 'Organization')
         Project = new_state.apps.get_model('main', 'Project')
+        WorkflowJobTemplate = new_state.apps.get_model('main', 'WorkflowJobTemplate')
         org = Organization.objects.create(name='duplicate-obj-organization', created=now(), modified=now())
         proj_ids = []
         for i in range(3):
             proj = Project.objects.create(name='duplicate-project-name', organization=org, created=now(), modified=now())
             proj_ids.append(proj.id)
+
+        # Test create WorkflowJobTemplate with duplicate names
+        wfjt_ids = []
+        for i in range(3):
+            wfjt = WorkflowJobTemplate.objects.create(name='duplicate-workflow-name', organization=org, created=now(), modified=now())
+            wfjt_ids.append(wfjt.id)
 
         # The uniqueness rules will not apply to InventorySource
         Inventory = new_state.apps.get_model('main', 'Inventory')
@@ -122,9 +129,16 @@ class TestMigrationSmoke:
         inv = Inventory.objects.create(name='migration-test-inv', organization=org, created=now(), modified=now())
         InventorySource.objects.create(name='migration-test-src', source='file', inventory=inv, organization=org, created=now(), modified=now())
 
+        # Apply migration 0200 which should rename duplicates
         new_state = migrator.apply_tested_migration(
             ('main', '0200_template_name_constraint'),
         )
+
+        # Get the models from the new state for verification
+        Project = new_state.apps.get_model('main', 'Project')
+        WorkflowJobTemplate = new_state.apps.get_model('main', 'WorkflowJobTemplate')
+        InventorySource = new_state.apps.get_model('main', 'InventorySource')
+
         for i, proj_id in enumerate(proj_ids):
             proj = Project.objects.get(id=proj_id)
             if i == 0:
@@ -133,11 +147,18 @@ class TestMigrationSmoke:
                 assert proj.name != 'duplicate-project-name'
                 assert proj.name.startswith('duplicate-project-name')
 
+        # Verify WorkflowJobTemplate duplicates are renamed
+        for i, wfjt_id in enumerate(wfjt_ids):
+            wfjt = WorkflowJobTemplate.objects.get(id=wfjt_id)
+            if i == 0:
+                assert wfjt.name == 'duplicate-workflow-name'
+            else:
+                assert wfjt.name != 'duplicate-workflow-name'
+                assert wfjt.name.startswith('duplicate-workflow-name')
+
         # The inventory source had this field set to avoid the constrains
-        InventorySource = new_state.apps.get_model('main', 'InventorySource')
         inv_src = InventorySource.objects.get(name='migration-test-src')
         assert inv_src.org_unique is False
-        Project = new_state.apps.get_model('main', 'Project')
         for proj in Project.objects.all():
             assert proj.org_unique is True
 
