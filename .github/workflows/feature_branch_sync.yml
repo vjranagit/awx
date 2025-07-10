@@ -1,4 +1,4 @@
-nname: Rebase release_4.6-next and stable-2.6
+name: Rebase release_4.6-next and stable-2.6
 
 on:
   push:
