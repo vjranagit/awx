@@ -18,7 +18,7 @@ def test_create_token(run_module, admin_user):
         'controller_username': None,
         'controller_password': None,
         'validate_certs': None,
-        'controller_oauthtoken': None,
+        'aap_token': None,
         'controller_config_file': None,
     }
 
