@@ -371,7 +371,7 @@ test_collection:
 	if [ "$(VENV_BASE)" ]; then \
 		. $(VENV_BASE)/awx/bin/activate; \
 	fi && \
-	if ! [ -x "$(shell command -v ansible-playbook)" ]; then pip install ansible-core; fi
+	if ! [ -x "$(shell command -v ansible-playbook)" ]; then pip install "ansible-core<2.19"; fi
 	ansible --version
 	py.test $(COLLECTION_TEST_DIRS) -v
 	# The python path needs to be modified so that the tests can find Ansible within the container
@@ -405,7 +405,7 @@ install_collection: build_collection
 test_collection_sanity:
 	rm -rf awx_collection_build/
 	rm -rf $(COLLECTION_INSTALL)
-	if ! [ -x "$(shell command -v ansible-test)" ]; then pip install ansible-core; fi
+	if ! [ -x "$(shell command -v ansible-test)" ]; then pip install "ansible-core<2.19"; fi
 	ansible --version
 	COLLECTION_VERSION=1.0.0 $(MAKE) install_collection
 	cd $(COLLECTION_INSTALL) && ansible-test sanity $(COLLECTION_SANITY_ARGS)

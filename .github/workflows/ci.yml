@@ -275,7 +275,7 @@ jobs:
           python-version: '3.12'
 
       - name: Upgrade ansible-core
-        run: python3 -m pip install --upgrade ansible-core
+        run: python3 -m pip install --upgrade "ansible-core<2.19"
 
       - name: Download coverage artifacts
         uses: actions/download-artifact@v4
