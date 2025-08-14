@@ -18,7 +18,7 @@
 - assert:
     that:
       - results is failed
-      - '"The provided dict in controller_oauthtoken did not properly contain the token entry" == results.msg'
+      - '"The provided dict in aap_token did not properly contain the token entry" == results.msg'
 
 - name: Try to use a token as a list
   job_list:
@@ -30,7 +30,7 @@
 - assert:
     that:
       - results is failed
-      - '"The provided controller_oauthtoken type was not valid (list). Valid options are str or dict." == results.msg'
+      - '"The provided aap_token type was not valid (list). Valid options are str or dict." == results.msg'
 
 - name: Try to delete a token with no existing_token or existing_token_id
   token:
@@ -113,3 +113,42 @@
     - assert:
         that:
           - results is changed or resuslts is skipped
+
+- block:
+    - name: Create a less privileged token (read)
+      token:
+        description: '{{ token_description }}'
+        scope: "read"
+        state: present
+      register: read_only_token
+
+    - debug:
+        msg: "{{read_only_token}}"
+
+    - name: Exercise the aap_token parameter with the new token.
+      job_list:
+        aap_token: "{{ read_only_token.ansible_facts.controller_token.token }}"
+
+    - name: Ensure the new token is being used and not the default token for the tests.
+      token:
+        aap_token: "{{ read_only_token.ansible_facts.controller_token.token }}"
+        scope: "write"
+        state: present
+      ignore_errors: true
+      register: result
+
+    - assert:
+        that:
+          - "'You don\\'t have permission to POST' in result.msg"
+
+  always:
+    - name: Delete the less privileged token
+      token:
+        existing_token_id: "{{ read_only_token['id'] }}"
+        state: absent
+      when: read_only_token is defined
+      register: result
+
+    - assert:
+        that:
+          - result is changed
