@@ -39,12 +39,16 @@ jobs:
             command: /start_tests.sh test_collection_all
             coverage-upload-name: "awx-collection"
           - name: api-schema
+<<<<<<< HEAD
             command: >-
               /start_tests.sh detect-schema-change SCHEMA_DIFF_BASE_BRANCH=${{
                 github.event.pull_request.base.ref || github.ref_name
               }}
             coverage-upload-name: ""
 
+=======
+            command: /start_tests.sh detect-schema-change SCHEMA_DIFF_BASE_BRANCH=${{ github.event.pull_request.base.ref }}
+>>>>>>> tower/test_stable-2.6
     steps:
       - uses: actions/checkout@v4
         with:
@@ -130,9 +134,15 @@ jobs:
         with:
           show-progress: false
 
+<<<<<<< HEAD
       - uses: ./.github/actions/setup-python
         with:
           python-version: '3.x'
+=======
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+>>>>>>> tower/test_stable-2.6
 
       - uses: ./.github/actions/run_awx_devel
         id: awx
@@ -143,11 +153,14 @@ jobs:
 
       - name: Run live dev env tests
         run: docker exec tools_awx_1 /bin/bash -c "make live_test"
+<<<<<<< HEAD
 
       - uses: ./.github/actions/upload_awx_devel_logs
         if: always()
         with:
           log-filename: live-tests.log
+=======
+>>>>>>> tower/test_stable-2.6
 
   awx-operator:
     runs-on: ubuntu-latest
@@ -179,6 +192,26 @@ jobs:
       - name: Install playbook dependencies
         run: |
           python3 -m pip install docker
+
+      - name: Generate placeholder SSH private key if SSH auth for private repos is not needed
+        id: generate_key
+        shell: bash
+        run: |
+          if [[ -z "${{ secrets.PRIVATE_GITHUB_KEY }}" ]]; then
+            ssh-keygen -t ed25519 -C "github-actions" -N "" -f ~/.ssh/id_ed25519
+            echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_OUTPUT
+            cat ~/.ssh/id_ed25519 >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_OUTPUT
+            echo "${{ secrets.PRIVATE_GITHUB_KEY }}" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Add private GitHub key to SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ steps.generate_key.outputs.SSH_PRIVATE_KEY }}
 
       - name: Build AWX image
         working-directory: awx
@@ -278,9 +311,15 @@ jobs:
         with:
           show-progress: false
 
+<<<<<<< HEAD
       - uses: ./.github/actions/setup-python
         with:
           python-version: '3.x'
+=======
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+>>>>>>> tower/test_stable-2.6
 
       - uses: ./.github/actions/run_awx_devel
         id: awx
@@ -356,12 +395,18 @@ jobs:
           persist-credentials: false
           show-progress: false
 
+<<<<<<< HEAD
       - uses: ./.github/actions/setup-python
         with:
           python-version: '3.x'
+=======
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+>>>>>>> tower/test_stable-2.6
 
       - name: Upgrade ansible-core
-        run: python3 -m pip install --upgrade ansible-core
+        run: python3 -m pip install --upgrade "ansible-core<2.19"
 
       - name: Download coverage artifacts
         uses: actions/download-artifact@v4

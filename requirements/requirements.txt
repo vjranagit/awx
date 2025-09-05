@@ -104,7 +104,7 @@ click==8.1.8
     # via receptorctl
 constantly==23.10.4
     # via twisted
-cryptography==41.0.7
+cryptography==42.0.8
     # via
     #   -r /awx_devel/requirements/requirements.in
     #   adal
@@ -210,6 +210,7 @@ hyperlink==21.0.0
     #   twisted
 idna==3.10
     # via
+    #   -r /awx_devel/requirements/requirements.in
     #   hyperlink
     #   requests
     #   twisted
@@ -364,6 +365,11 @@ propcache==0.2.1
     #   yarl
 protobuf==5.29.3
     # via
+    #   aiohttp
+    #   yarl
+protobuf==4.25.8
+    # via
+    #   -r /awx_devel/requirements/requirements.in
     #   googleapis-common-protos
     #   opentelemetry-proto
 psutil==6.1.1
@@ -494,7 +500,6 @@ smmap==5.0.2
     # via gitdb
 sqlparse==0.5.3
     # via
-    #   -r /awx_devel/requirements/requirements.in
     #   django
     #   django-ansible-base
 tempora==5.8.0
@@ -523,6 +528,7 @@ typing-extensions==4.12.2
     #   twisted
 urllib3==2.3.0
     # via
+    #   -r /awx_devel/requirements/requirements.in
     #   botocore
     #   django-ansible-base
     #   kubernetes

@@ -7,10 +7,16 @@
   ansible.builtin.set_fact:
     plugin_name: "{{ controller_meta.prefix }}.schedule_rrule"
 
+<<<<<<< HEAD
 - name: Lookup with too many parameters (should fail)
   ansible.builtin.set_fact:
     _rrule: "{{ query(plugin_name, days_of_week=[1, 2], days_of_month=[15]) }}"
   register: result_too_many_params
+=======
+- name: Test too many params (failure from validation of terms)
+  ansible.builtin.debug:
+    msg: "{{ lookup(plugin_name | string, 'none', 'weekly', start_date='2020-4-16 03:45:07') }}"
+>>>>>>> tower/test_stable-2.6
   ignore_errors: true
 
 - name: Assert proper error is reported for too many parameters
@@ -21,8 +27,12 @@
 
 - name: Attempt invalid schedule_rrule lookup with bad frequency
   ansible.builtin.debug:
+<<<<<<< HEAD
     msg: "{{ lookup(plugin_name, 'john', start_date='2020-04-16 03:45:07') }}"
   register: result_bad_freq
+=======
+    msg: "{{ lookup(plugin_name, 'john', start_date='2020-4-16 03:45:07') }}"
+>>>>>>> tower/test_stable-2.6
   ignore_errors: true
 
 - name: Assert proper error is reported for bad frequency
@@ -34,7 +44,10 @@
 - name: Test an invalid start date
   ansible.builtin.debug:
     msg: "{{ lookup(plugin_name, 'none', start_date='invalid') }}"
+<<<<<<< HEAD
   register: result_bad_date
+=======
+>>>>>>> tower/test_stable-2.6
   ignore_errors: true
 
 - name: Assert plugin error message for invalid start date
@@ -46,7 +59,11 @@
 - name: Test end_on as count (generic success case)
   ansible.builtin.debug:
     msg: "{{ lookup(plugin_name, 'minute', start_date='2020-4-16 03:45:07', end_on='2') }}"
+<<<<<<< HEAD
   register: result_success
+=======
+  register: result
+>>>>>>> tower/test_stable-2.6
 
 - name: Assert successful rrule generation
   ansible.builtin.assert:

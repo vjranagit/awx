@@ -75,6 +75,10 @@ class ControllerModule(AnsibleModule):
         aap_token=dict(
             type='raw',
             no_log=True,
+<<<<<<< HEAD
+=======
+            aliases=['controller_oauthtoken',],
+>>>>>>> tower/test_stable-2.6
             required=False,
             fallback=(env_fallback, ['CONTROLLER_OAUTH_TOKEN', 'TOWER_OAUTH_TOKEN', 'AAP_TOKEN'])
         ),
@@ -132,6 +136,23 @@ class ControllerModule(AnsibleModule):
             if direct_value is not None:
                 setattr(self, short_param, direct_value)
 
+<<<<<<< HEAD
+=======
+        # Perform magic depending on whether aap_token is a string or a dict
+        if self.params.get('aap_token'):
+            token_param = self.params.get('aap_token')
+            if isinstance(token_param, dict):
+                if 'token' in token_param:
+                    self.oauth_token = self.params.get('aap_token')['token']
+                else:
+                    self.fail_json(msg="The provided dict in aap_token did not properly contain the token entry")
+            elif isinstance(token_param, string_types):
+                self.oauth_token = self.params.get('aap_token')
+            else:
+                error_msg = "The provided aap_token type was not valid ({0}). Valid options are str or dict.".format(type(token_param).__name__)
+                self.fail_json(msg=error_msg)
+
+>>>>>>> tower/test_stable-2.6
         # Perform some basic validation
         if not self.host.startswith(("https://", "http://")):  # NOSONAR
             self.host = "https://{0}".format(self.host)
@@ -538,7 +559,18 @@ class ControllerAPIModule(ControllerModule):
                 self.fail_json(msg='Invalid authentication credentials for {0} (HTTP 401).'.format(url.path))
             # Sanity check: Did we get a forbidden response, which means that the user isn't allowed to do this? Report that.
             elif he.code == 403:
-                self.fail_json(msg="You don't have permission to {1} to {0} (HTTP 403).".format(url.path, method))
+                # Hack: Tell the customer to use the platform supported collection when interacting with Org, Team, User Controller endpoints
+                err_msg = he.fp.read().decode('utf-8')
+                try:
+                    # Defensive coding. Handle json responses and non-json responses
+                    err_msg = loads(err_msg)
+                    err_msg = err_msg['detail']
+                # JSONDecodeError only available on Python 3.5+
+                except ValueError:
+                    pass
+                prepend_msg = " Use the collection ansible.platform to modify resources Organization, User, or Team." if (
+                    "this resource via the platform ingress") in err_msg else ""
+                self.fail_json(msg="You don't have permission to {1} to {0} (HTTP 403).{2}".format(url.path, method, prepend_msg))
             # Sanity check: Did we get a 404 response?
             # Requests with primary keys will return a 404 if there is no response, and we want to consistently trap these.
             elif he.code == 404:

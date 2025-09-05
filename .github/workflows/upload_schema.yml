@@ -11,6 +11,7 @@ on:
       - devel
       - release_**
       - feature_**
+      - stable-**
 jobs:
   push:
     runs-on: ubuntu-latest
@@ -23,28 +24,76 @@ jobs:
         with:
           show-progress: false
 
+<<<<<<< HEAD
       - uses: ./.github/actions/setup-python
+=======
+      - name: Set lower case owner name
+        shell: bash
+        run: echo "OWNER_LC=${OWNER,,}" >> $GITHUB_ENV
+        env:
+          OWNER: '${{ github.repository_owner }}'
+
+      - name: Get python version from Makefile
+        run: echo py_version=`make PYTHON_VERSION` >> $GITHUB_ENV
+
+      - name: Install python ${{ env.py_version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.py_version }}
+>>>>>>> tower/test_stable-2.6
 
       - name: Log in to registry
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
+<<<<<<< HEAD
       - uses: ./.github/actions/setup-ssh-agent
         with:
           ssh-private-key: ${{ secrets.PRIVATE_GITHUB_KEY }}
 
       - name: Pre-pull image to warm build cache
+=======
+      - name: Pre-pull latest devel image to warm cache
+        shell: bash
+>>>>>>> tower/test_stable-2.6
         run: |
-          docker pull -q ghcr.io/${{ github.repository_owner }}/awx_devel:${GITHUB_REF##*/} || :
+          DEV_DOCKER_TAG_BASE=ghcr.io/${OWNER_LC} \
+          COMPOSE_TAG=${{ github.base_ref || github.ref_name }} \
+          docker pull -q `make print-DEVEL_IMAGE_NAME`
+        continue-on-error: true
+
+      - name: Generate placeholder SSH private key if SSH auth for private repos is not needed
+        id: generate_key
+        shell: bash
+        run: |
+          if [[ -z "${{ secrets.PRIVATE_GITHUB_KEY }}" ]]; then
+            ssh-keygen -t ed25519 -C "github-actions" -N "" -f ~/.ssh/id_ed25519
+            echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_OUTPUT
+            cat ~/.ssh/id_ed25519 >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_OUTPUT
+            echo "${{ secrets.PRIVATE_GITHUB_KEY }}" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Add private GitHub key to SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ steps.generate_key.outputs.SSH_PRIVATE_KEY }}
 
       - name: Build image
         run: |
-          DEV_DOCKER_TAG_BASE=ghcr.io/${{ github.repository_owner }} COMPOSE_TAG=${GITHUB_REF##*/} make docker-compose-build
+          DEV_DOCKER_TAG_BASE=ghcr.io/${OWNER_LC} \
+          COMPOSE_TAG=${{ github.base_ref || github.ref_name }} \
+          make docker-compose-build
 
       - name: Generate API Schema
         run: |
+          DEV_DOCKER_TAG_BASE=ghcr.io/${OWNER_LC} \
+          COMPOSE_TAG=${{ github.base_ref || github.ref_name }} \
           docker run -u $(id -u) --rm -v ${{ github.workspace }}:/awx_devel/:Z \
-            --workdir=/awx_devel ghcr.io/${{ github.repository_owner }}/awx_devel:${GITHUB_REF##*/} /start_tests.sh genschema
+            --workdir=/awx_devel `make print-DEVEL_IMAGE_NAME` /start_tests.sh genschema
 
       - name: Upload API Schema
         env:

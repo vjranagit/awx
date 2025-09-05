@@ -5,6 +5,7 @@ import pytest
 
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test.utils import override_settings
+
 from awx.main.models import User
 from awx.api.versioning import reverse
 

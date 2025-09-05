@@ -27,6 +27,7 @@ from django.conf import settings
 
 # Ansible_base app
 from ansible_base.rbac.models import RoleDefinition, RoleUserAssignment, RoleTeamAssignment
+from ansible_base.rbac.sync import maybe_reverse_sync_assignment, maybe_reverse_sync_unassignment
 from ansible_base.rbac import permission_registry
 from ansible_base.lib.utils.models import get_type_for_model
 
@@ -560,24 +561,12 @@ def get_role_definition(role):
     f = obj._meta.get_field(role.role_field)
     action_name = f.name.rsplit("_", 1)[0]
     model_print = type(obj).__name__
+    rd_name = f'{model_print} {action_name.title()} Compat'
     perm_list = get_role_codenames(role)
     defaults = {
         'content_type': permission_registry.content_type_model.objects.get_by_natural_key(role.content_type.app_label, role.content_type.model),
         'description': f'Has {action_name.title()} permission to {model_print} for backwards API compatibility',
     }
-    # use Controller-specific role definitions for Team/Organization and member/admin
-    # instead of platform role definitions
-    # these should exist in the system already, so just do a lookup by role definition name
-    if model_print in ['Team', 'Organization'] and action_name in ['member', 'admin']:
-        rd_name = f'Controller {model_print} {action_name.title()}'
-        rd = RoleDefinition.objects.filter(name=rd_name).first()
-        if rd:
-            return rd
-        else:
-            return RoleDefinition.objects.create_from_permissions(permissions=perm_list, name=rd_name, managed=True, **defaults)
-
-    else:
-        rd_name = f'{model_print} {action_name.title()} Compat'
 
     with impersonate(None):
         try:
@@ -633,12 +622,14 @@ def get_role_from_object_role(object_role):
     return getattr(object_role.content_object, role_name)
 
 
-def give_or_remove_permission(role, actor, giving=True):
+def give_or_remove_permission(role, actor, giving=True, rd=None):
     obj = role.content_object
     if obj is None:
         return
-    rd = get_role_definition(role)
-    rd.give_or_remove_permission(actor, obj, giving=giving)
+    if not rd:
+        rd = get_role_definition(role)
+    assignment = rd.give_or_remove_permission(actor, obj, giving=giving)
+    return assignment
 
 
 class SyncEnabled(threading.local):
@@ -690,7 +681,15 @@ def sync_members_to_new_rbac(instance, action, model, pk_set, reverse, **kwargs)
             role = Role.objects.get(pk=user_or_role_id)
         else:
             user = get_user_model().objects.get(pk=user_or_role_id)
-        give_or_remove_permission(role, user, giving=is_giving)
+        rd = get_role_definition(role)
+        assignment = give_or_remove_permission(role, user, giving=is_giving, rd=rd)
+
+        # sync to resource server
+        if rbac_sync_enabled.enabled:
+            if is_giving:
+                maybe_reverse_sync_assignment(assignment)
+            else:
+                maybe_reverse_sync_unassignment(rd, user, role.content_object)
 
 
 def sync_parents_to_new_rbac(instance, action, model, pk_set, reverse, **kwargs):
@@ -733,7 +732,90 @@ def sync_parents_to_new_rbac(instance, action, model, pk_set, reverse, **kwargs)
             from awx.main.models.organization import Team
 
             team = Team.objects.get(pk=parent_role.object_id)
-            give_or_remove_permission(child_role, team, giving=is_giving)
+            rd = get_role_definition(child_role)
+            assignment = give_or_remove_permission(child_role, team, giving=is_giving, rd=rd)
+
+            # sync to resource server
+            if rbac_sync_enabled.enabled:
+                if is_giving:
+                    maybe_reverse_sync_assignment(assignment)
+                else:
+                    maybe_reverse_sync_unassignment(rd, team, child_role.content_object)
+
+
+ROLE_DEFINITION_TO_ROLE_FIELD = {
+    'Organization Member': 'member_role',
+    'WorkflowJobTemplate Admin': 'admin_role',
+    'Organization WorkflowJobTemplate Admin': 'workflow_admin_role',
+    'WorkflowJobTemplate Execute': 'execute_role',
+    'WorkflowJobTemplate Approve': 'approval_role',
+    'InstanceGroup Admin': 'admin_role',
+    'InstanceGroup Use': 'use_role',
+    'Organization ExecutionEnvironment Admin': 'execution_environment_admin_role',
+    'Project Admin': 'admin_role',
+    'Organization Project Admin': 'project_admin_role',
+    'Project Use': 'use_role',
+    'Project Update': 'update_role',
+    'JobTemplate Admin': 'admin_role',
+    'Organization JobTemplate Admin': 'job_template_admin_role',
+    'JobTemplate Execute': 'execute_role',
+    'Inventory Admin': 'admin_role',
+    'Organization Inventory Admin': 'inventory_admin_role',
+    'Inventory Use': 'use_role',
+    'Inventory Adhoc': 'adhoc_role',
+    'Inventory Update': 'update_role',
+    'Organization NotificationTemplate Admin': 'notification_admin_role',
+    'Credential Admin': 'admin_role',
+    'Organization Credential Admin': 'credential_admin_role',
+    'Credential Use': 'use_role',
+    'Team Admin': 'admin_role',
+    'Team Member': 'member_role',
+    'Organization Admin': 'admin_role',
+    'Organization Audit': 'auditor_role',
+    'Organization Execute': 'execute_role',
+    'Organization Approval': 'approval_role',
+}
+
+
+def _sync_assignments_to_old_rbac(instance, delete=True):
+    from awx.main.signals import disable_activity_stream
+
+    with disable_activity_stream():
+        with disable_rbac_sync():
+            field_name = ROLE_DEFINITION_TO_ROLE_FIELD.get(instance.role_definition.name)
+            if not field_name:
+                return
+            try:
+                role = getattr(instance.object_role.content_object, field_name)
+            # in the case RoleUserAssignment is being cascade deleted, then
+            # object_role might not exist. In which case the object is about to be removed
+            # anyways so just return
+            except ObjectDoesNotExist:
+                return
+            if isinstance(instance.actor, get_user_model()):
+                # user
+                if delete:
+                    role.members.remove(instance.actor)
+                else:
+                    role.members.add(instance.actor)
+            else:
+                # team
+                if delete:
+                    instance.team.member_role.children.remove(role)
+                else:
+                    instance.team.member_role.children.add(role)
+
+
+@receiver(post_delete, sender=RoleUserAssignment)
+@receiver(post_delete, sender=RoleTeamAssignment)
+def sync_assignments_to_old_rbac_delete(instance, **kwargs):
+    _sync_assignments_to_old_rbac(instance, delete=True)
+
+
+@receiver(post_save, sender=RoleUserAssignment)
+@receiver(post_save, sender=RoleTeamAssignment)
+def sync_user_assignments_to_old_rbac_create(instance, **kwargs):
+    _sync_assignments_to_old_rbac(instance, delete=False)
 
 
 ROLE_DEFINITION_TO_ROLE_FIELD = {

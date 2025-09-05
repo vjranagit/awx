@@ -10,6 +10,7 @@ on:
       - devel
       - release_*
       - feature_*
+      - stable-*
 jobs:
   push-development-images:
     runs-on: ubuntu-latest
@@ -69,9 +70,31 @@ jobs:
           make ui
         if: matrix.build-targets.image-name == 'awx'
 
+<<<<<<< HEAD
       - uses: ./.github/actions/setup-ssh-agent
         with:
           ssh-private-key: ${{ secrets.PRIVATE_GITHUB_KEY }}
+=======
+      - name: Generate placeholder SSH private key if SSH auth for private repos is not needed
+        id: generate_key
+        shell: bash
+        run: |
+          if [[ -z "${{ secrets.PRIVATE_GITHUB_KEY }}" ]]; then
+            ssh-keygen -t ed25519 -C "github-actions" -N "" -f ~/.ssh/id_ed25519
+            echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_OUTPUT
+            cat ~/.ssh/id_ed25519 >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_OUTPUT
+            echo "${{ secrets.PRIVATE_GITHUB_KEY }}" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Add private GitHub key to SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ steps.generate_key.outputs.SSH_PRIVATE_KEY }}
+>>>>>>> tower/test_stable-2.6
 
       - name: Build and push AWX devel images
         run: |

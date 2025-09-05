@@ -77,7 +77,7 @@ RECEPTOR_IMAGE ?= quay.io/ansible/receptor:devel
 SRC_ONLY_PKGS ?= cffi,pycparser,psycopg,twilio
 # These should be upgraded in the AWX and Ansible venv before attempting
 # to install the actual requirements
-VENV_BOOTSTRAP ?= pip==21.2.4 setuptools==70.3.0 setuptools_scm[toml]==8.1.0 wheel==0.45.1 cython==3.0.11
+VENV_BOOTSTRAP ?= pip==21.2.4 setuptools==80.9.0 setuptools_scm[toml]==8.0.4 wheel==0.42.0 cython==3.1.3
 
 NAME ?= awx
 
@@ -378,7 +378,7 @@ test_collection:
 	if [ "$(VENV_BASE)" ]; then \
 		. $(VENV_BASE)/awx/bin/activate; \
 	fi && \
-	if ! [ -x "$(shell command -v ansible-playbook)" ]; then pip install ansible-core; fi
+	if ! [ -x "$(shell command -v ansible-playbook)" ]; then pip install "ansible-core<2.19"; fi
 	ansible --version
 	py.test $(COLLECTION_TEST_DIRS) $(COVERAGE_ARGS) -v
 	@if [ "${GITHUB_ACTIONS}" = "true" ]; \
@@ -417,7 +417,7 @@ install_collection: build_collection
 test_collection_sanity:
 	rm -rf awx_collection_build/
 	rm -rf $(COLLECTION_INSTALL)
-	if ! [ -x "$(shell command -v ansible-test)" ]; then pip install ansible-core; fi
+	if ! [ -x "$(shell command -v ansible-test)" ]; then pip install "ansible-core<2.19"; fi
 	ansible --version
 	COLLECTION_VERSION=1.0.0 $(MAKE) install_collection
 	cd $(COLLECTION_INSTALL) && \
