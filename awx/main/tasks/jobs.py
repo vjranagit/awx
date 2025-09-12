@@ -93,9 +93,6 @@ from awx.main.utils.update_model import update_model
 # Django flags
 from flags.state import flag_enabled
 
-# Django flags
-from flags.state import flag_enabled
-
 logger = logging.getLogger('awx.main.tasks.jobs')
 
 

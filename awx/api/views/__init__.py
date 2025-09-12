@@ -56,7 +56,6 @@ from wsgiref.util import FileWrapper
 # django-ansible-base
 from ansible_base.lib.utils.requests import get_remote_hosts
 from ansible_base.rbac.models import RoleEvaluation
-from ansible_base.rbac import permission_registry
 
 # AWX
 from awx.main.tasks.system import send_notifications, update_inventory_computed_fields

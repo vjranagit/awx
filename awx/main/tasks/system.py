@@ -13,25 +13,6 @@ from datetime import datetime
 from distutils.version import LooseVersion as Version
 from io import StringIO
 
-# Django
-from django.conf import settings
-from django.db import connection, transaction, DatabaseError, IntegrityError
-from django.db.models.fields.related import ForeignKey
-from django.utils.timezone import now, timedelta
-from django.utils.encoding import smart_str
-from django.contrib.auth.models import User
-from django.utils.translation import gettext_lazy as _
-from django.utils.translation import gettext_noop
-from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models.query import QuerySet
-
-# Django-CRUM
-from crum import impersonate
-
-# Django flags
-from flags.state import flag_enabled
-
 # Runner
 import ansible_runner.cleanup
 import psycopg
@@ -91,13 +72,6 @@ from awx.main.tasks.receptor import administrative_workunit_reaper, get_receptor
 from awx.main.utils.common import ignore_inventory_computed_fields, ignore_inventory_group_removal
 from awx.main.utils.reload import stop_local_services
 from dispatcherd.publish import task
-from awx.main.tasks.receptor import get_receptor_ctl, worker_info, worker_cleanup, administrative_workunit_reaper, write_receptor_config
-from awx.main.consumers import emit_channel_notification
-from awx.main import analytics
-from awx.conf import settings_registry
-from awx.main.analytics.subsystem_metrics import DispatcherMetrics
-
-from rest_framework.exceptions import PermissionDenied
 
 logger = logging.getLogger('awx.main.tasks.system')
 

@@ -2,7 +2,6 @@ import pytest
 
 from django_test_migrations.plan import all_migrations, nodes_to_tuples
 from django.utils.timezone import now
-from django.utils import timezone
 
 """
 Most tests that live in here can probably be deleted at some point. They are mainly

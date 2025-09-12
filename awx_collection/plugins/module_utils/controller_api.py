@@ -75,10 +75,6 @@ class ControllerModule(AnsibleModule):
         aap_token=dict(
             type='raw',
             no_log=True,
-<<<<<<< HEAD
-=======
-            aliases=['controller_oauthtoken',],
->>>>>>> tower/test_stable-2.6
             required=False,
             fallback=(env_fallback, ['CONTROLLER_OAUTH_TOKEN', 'TOWER_OAUTH_TOKEN', 'AAP_TOKEN'])
         ),
@@ -136,23 +132,6 @@ class ControllerModule(AnsibleModule):
             if direct_value is not None:
                 setattr(self, short_param, direct_value)
 
-<<<<<<< HEAD
-=======
-        # Perform magic depending on whether aap_token is a string or a dict
-        if self.params.get('aap_token'):
-            token_param = self.params.get('aap_token')
-            if isinstance(token_param, dict):
-                if 'token' in token_param:
-                    self.oauth_token = self.params.get('aap_token')['token']
-                else:
-                    self.fail_json(msg="The provided dict in aap_token did not properly contain the token entry")
-            elif isinstance(token_param, string_types):
-                self.oauth_token = self.params.get('aap_token')
-            else:
-                error_msg = "The provided aap_token type was not valid ({0}). Valid options are str or dict.".format(type(token_param).__name__)
-                self.fail_json(msg=error_msg)
-
->>>>>>> tower/test_stable-2.6
         # Perform some basic validation
         if not self.host.startswith(("https://", "http://")):  # NOSONAR
             self.host = "https://{0}".format(self.host)

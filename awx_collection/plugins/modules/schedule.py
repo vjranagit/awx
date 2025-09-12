@@ -180,13 +180,8 @@ EXAMPLES = '''
       - frequency: 'day'
         interval: 1
       - frequency: 'day'
-<<<<<<< HEAD
         interval: 1
         byweekday: 'sunday'
-=======
-        every: 1
-        on_days: 'sunday'
->>>>>>> tower/test_stable-2.6
         include: false
 
 - name: Delete 'my_schedule' schedule for my_workflow

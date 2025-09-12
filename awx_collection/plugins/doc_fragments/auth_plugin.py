@@ -40,20 +40,11 @@ options:
         version: '4.0.0'
         why: Collection name change
         alternatives: 'TOWER_PASSWORD, AAP_PASSWORD'
-<<<<<<< HEAD
   aap_token:
-=======
-  oauth_token:
->>>>>>> tower/test_stable-2.6
     description:
     - The OAuth token to use.
     env:
     - name: AAP_TOKEN
-<<<<<<< HEAD
-=======
-    - name: CONTROLLER_OAUTH_TOKEN
-    - name: TOWER_OAUTH_TOKEN
->>>>>>> tower/test_stable-2.6
       deprecated:
         collection_name: 'awx.awx'
         version: '4.0.0'

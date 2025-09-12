@@ -12,11 +12,7 @@ jobs:
         with:
           show-progress: false
 
-<<<<<<< HEAD
       - uses: ./.github/actions/setup-python
-=======
-      - uses: actions/setup-python@v5
->>>>>>> tower/test_stable-2.6
         with:
           python-version: '3.x'
 
