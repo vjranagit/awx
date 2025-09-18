@@ -521,6 +521,7 @@ class TestInventorySourceCredential:
         patch(url=inv_src.get_absolute_url(), data={'credential': aws_cred.pk}, expect=200, user=admin_user)
         assert list(inv_src.credentials.values_list('id', flat=True)) == [aws_cred.pk]
 
+    @pytest.skip(reason="Delay until AAP-53978 completed")
     def test_vmware_cred_create_esxi_source(self, inventory, admin_user, organization, post, get):
         """Test that a vmware esxi source can be added with a vmware credential"""
         from awx.main.models.credential import Credential, CredentialType

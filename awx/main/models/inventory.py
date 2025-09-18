@@ -1024,6 +1024,7 @@ class InventorySourceOptions(BaseModel):
             # If a credential was provided, it's important that it matches
             # the actual inventory source being used (Amazon requires Amazon
             # credentials; Rackspace requires Rackspace credentials; etc...)
+            # TODO: AAP-53978 check that this matches new awx-plugin content for ESXI
             if source == 'vmware_esxi' and source.replace('vmware_esxi', 'vmware') != cred.kind:
                 return _('VMWARE inventory sources (such as %s) require credentials for the matching cloud service.') % source
             if source == 'ec2' and source.replace('ec2', 'aws') != cred.kind:

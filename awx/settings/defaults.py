@@ -602,6 +602,7 @@ VMWARE_VALIDATE_CERTS = False
 # -----------------
 # -- VMware ESXi --
 # -----------------
+# TODO: Verify matches with AAP-53978 solution in awx-plugins
 VMWARE_ESXI_EXCLUDE_EMPTY_GROUPS = True
 
 # ---------------------------
