@@ -596,12 +596,6 @@ def get_role_from_object_role(object_role):
         model_name, role_name, _ = rd.name.split()
         role_name = role_name.lower()
         role_name += '_role'
-    elif rd.name.startswith('Controller') and rd.name.endswith(' Admin'):
-        # Controller Organization Admin and Controller Team Admin
-        role_name = 'admin_role'
-    elif rd.name.startswith('Controller') and rd.name.endswith(' Member'):
-        # Controller Organization Member and Controller Team Member
-        role_name = 'member_role'
     elif rd.name.endswith(' Admin') and rd.name.count(' ') == 2:
         # cases like "Organization Project Admin"
         model_name, target_model_name, role_name = rd.name.split()
@@ -751,7 +745,6 @@ def sync_parents_to_new_rbac(instance, action, model, pk_set, reverse, **kwargs)
 
 ROLE_DEFINITION_TO_ROLE_FIELD = {
     'Organization Member': 'member_role',
-    'Controller Organization Member': 'member_role',
     'WorkflowJobTemplate Admin': 'admin_role',
     'Organization WorkflowJobTemplate Admin': 'workflow_admin_role',
     'WorkflowJobTemplate Execute': 'execute_role',
@@ -776,11 +769,8 @@ ROLE_DEFINITION_TO_ROLE_FIELD = {
     'Organization Credential Admin': 'credential_admin_role',
     'Credential Use': 'use_role',
     'Team Admin': 'admin_role',
-    'Controller Team Admin': 'admin_role',
     'Team Member': 'member_role',
-    'Controller Team Member': 'member_role',
     'Organization Admin': 'admin_role',
-    'Controller Organization Admin': 'admin_role',
     'Organization Audit': 'auditor_role',
     'Organization Execute': 'execute_role',
     'Organization Approval': 'approval_role',
