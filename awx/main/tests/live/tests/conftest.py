@@ -19,6 +19,7 @@ from awx.main.tests.conftest import load_all_credentials  # noqa: F401; pylint: 
 from awx.main.tests import data
 
 from awx.main.models import Project, JobTemplate, Organization, Inventory
+from awx.main.tasks.system import clear_setting_cache
 
 
 logger = logging.getLogger(__name__)
@@ -61,10 +62,15 @@ def live_tmp_folder():
         subprocess.run(GIT_COMMANDS, cwd=source_dir, shell=True)
     # force invalidation of key before checking it in case it is stale
     cache.delete_many(['AWX_ISOLATION_SHOW_PATHS'])
+    settings._awx_conf_memoizedcache.clear()
     if path not in settings.AWX_ISOLATION_SHOW_PATHS:
         logger.info(f'Modifying settings.AWX_ISOLATION_SHOW_PATHS for live test: {settings.AWX_ISOLATION_SHOW_PATHS + [path]}')
         settings.AWX_ISOLATION_SHOW_PATHS = settings.AWX_ISOLATION_SHOW_PATHS + [path]
         cache.delete_many(['AWX_ISOLATION_SHOW_PATHS'])
+        settings._awx_conf_memoizedcache.clear()
+        # cache is cleared in test environment, but need to clear in test environment
+        clear_setting_cache.delay(['AWX_ISOLATION_SHOW_PATHS'])
+        time.sleep(0.2)  # allow task to finish, we have no real metric to know
     else:
         logger.info(f'Believed that {path} is already in settings.AWX_ISOLATION_SHOW_PATHS: {settings.AWX_ISOLATION_SHOW_PATHS}')
     return path
