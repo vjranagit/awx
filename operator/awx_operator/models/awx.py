@@ -218,3 +218,67 @@ class AWXSpec(BaseModel):
     def validate_image_pull_policy(cls, v: str) -> str:
         """Validate image pull policy."""
         allowed = ["Always", "Never", "IfNotPresent"]
+        if v not in allowed:
+            raise ValueError(f"image_pull_policy must be one of {allowed}")
+        return v
+
+
+class AWXStatus(BaseModel):
+    """
+    AWX Custom Resource Status.
+
+    Represents the observed state of an AWX deployment.
+    """
+
+    conditions: list[dict[str, Any]] = Field(
+        default_factory=list, description="Status conditions"
+    )
+    version: Optional[str] = Field(default=None, description="Deployed AWX version")
+    image: Optional[str] = Field(default=None, description="Deployed AWX image")
+    postgres_configuration_secret: Optional[str] = Field(
+        default=None, description="PostgreSQL secret in use"
+    )
+    broadcast_websocket_secret: Optional[str] = Field(
+        default=None, description="Broadcast websocket secret"
+    )
+    admin_password_secret: Optional[str] = Field(
+        default=None, description="Admin password secret"
+    )
+    secret_key_secret: Optional[str] = Field(
+        default=None, description="Secret key secret"
+    )
+    url: Optional[str] = Field(default=None, description="AWX URL")
+    upgraded_postgres_version: Optional[str] = Field(
+        default=None, description="Upgraded PostgreSQL version"
+    )
+    migrated_from_secret: Optional[str] = Field(
+        default=None, description="Migration source secret"
+    )
+
+    def add_condition(
+        self,
+        type_: str,
+        status: str,
+        reason: str,
+        message: str,
+        last_transition_time: Optional[str] = None,
+    ) -> None:
+        """Add or update a status condition."""
+        from datetime import datetime
+
+        if last_transition_time is None:
+            last_transition_time = datetime.utcnow().isoformat() + "Z"
+
+        # Remove existing condition of same type
+        self.conditions = [c for c in self.conditions if c.get("type") != type_]
+
+        # Add new condition
+        self.conditions.append(
+            {
+                "type": type_,
+                "status": status,
+                "reason": reason,
+                "message": message,
+                "lastTransitionTime": last_transition_time,
+            }
+        )

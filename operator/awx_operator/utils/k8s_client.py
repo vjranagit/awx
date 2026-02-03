@@ -268,3 +268,14 @@ class K8sClient:
             api_method: API method to call (e.g., read_namespaced_deployment)
             name: Resource name
 
+        Returns:
+            True if resource exists, False otherwise
+        """
+        try:
+            api_method(name, self.namespace)
+            return True
+        except ApiException as e:
+            if e.status == 404:
+                return False
+            logger.error(f"Failed to check resource {name}: {e}")
+            raise

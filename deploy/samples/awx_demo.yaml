@@ -1,0 +1,32 @@
+apiVersion: awx.ansible.com/v1beta1
+kind: AWX
+metadata:
+  name: awx-demo
+  namespace: awx
+spec:
+  service_type: ClusterIP
+  ingress_type: ingress
+  hostname: awx.example.com
+
+  # Admin configuration
+  admin_user: admin
+  admin_email: admin@example.com
+
+  # PostgreSQL configuration
+  postgres_storage_class: standard
+  postgres_storage_requirements:
+    requests:
+      storage: 8Gi
+
+  # Resource configuration
+  web_replicas: 2
+  task_replicas: 1
+
+  # Image configuration
+  image_version: "24.6.1"
+  image_pull_policy: IfNotPresent
+
+  # Projects persistence
+  projects_persistence: true
+  projects_storage_class: standard
+  projects_storage_size: 8Gi

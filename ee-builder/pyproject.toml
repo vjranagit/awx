@@ -1,0 +1,52 @@
+[tool.poetry]
+name = "awx-ee-builder"
+version = "1.0.0"
+description = "Execution Environment builder for AWX - Python implementation"
+authors = ["vjranagit <67354820+vjranagit@users.noreply.github.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+packages = [{include = "awx_ee"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pydantic = "^2.5.0"
+jinja2 = "^3.1.0"
+pyyaml = "^6.0"
+click = "^8.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
+black = "^23.12.0"
+mypy = "^1.7.0"
+ruff = "^0.1.0"
+types-pyyaml = "^6.0.0"
+
+[tool.poetry.scripts]
+awx-ee-build = "awx_ee.cli:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=awx_ee --cov-report=term-missing"
